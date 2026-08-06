@@ -469,6 +469,11 @@ func _update_danger(delta: float) -> void:
 	var max_hp := core.max_energy
 	var ratio := float(hp) / float(max_hp) if max_hp > 0 else 1.0
 	if ratio <= 0.2:
+		if GameManager.reduce_motion:
+			# 减弱动效：静态淡红边，不脉动、不播心跳音
+			danger_overlay.color = Color(1.0, 0.0, 0.0, 0.18)
+			_heartbeat_timer = 0.0
+			return
 		_danger_pulse += delta * 3.0
 		var a := (sin(_danger_pulse) + 1.0) * 0.5 * 0.5
 		danger_overlay.color = Color(1.0, 0.0, 0.0, a)

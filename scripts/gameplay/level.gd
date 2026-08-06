@@ -99,7 +99,11 @@ func draw_path_overlay() -> void:
 			path_overlay.draw_polyline(path_pts, Color(1.0, 0.45, 0.1, 0.95), 14.0)
 			# 3. 绘制中心流光线
 			path_overlay.draw_polyline(path_pts, Color(1.0, 0.85, 0.3, 0.9), 3.0)
-			
+
+			# 减弱动效时跳过路线上的流动脉冲光点（静态管道即可）
+			if GameManager.reduce_motion:
+				continue
+
 			# 在路线上绘制方向脉冲粒子圈
 			for p_idx in range(path_pts.size() - 1):
 				var p1 := path_pts[p_idx]

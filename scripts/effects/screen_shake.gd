@@ -18,6 +18,8 @@ func _ready() -> void:
 	pass
 
 func add_trauma(amount: float) -> void:
+	if GameManager.reduce_motion:
+		return
 	trauma = clamp(trauma + amount, 0.0, 1.0)
 
 func _process(delta: float) -> void:
