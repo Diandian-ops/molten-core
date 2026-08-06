@@ -4,33 +4,34 @@ extends Node
 ## 公共 API: play_sfx(id) | play_music(id) | stop_music() | set_bus_volume(bus, db)
 
 const SFX_PATHS := {
-	"tower_shoot":    preload("res://assets/audio/sfx/tower_shoot.wav"),
-	"projectile_hit": preload("res://assets/audio/sfx/projectile_hit.wav"),
-	"enemy_kill":     preload("res://assets/audio/sfx/enemy_kill.wav"),
-	"tower_place":    preload("res://assets/audio/sfx/tower_place.wav"),
-	"tower_upgrade":  preload("res://assets/audio/sfx/tower_upgrade.wav"),
-	"core_damaged":   preload("res://assets/audio/sfx/core_damaged.wav"),
-	"core_destroyed": preload("res://assets/audio/sfx/core_destroyed.wav"),
-	"ui_click":       preload("res://assets/audio/sfx/ui_click.wav"),
-	"ui_click_2":     preload("res://assets/audio/sfx/ui_click_2.wav"),
-	"wave_start":     preload("res://assets/audio/sfx/wave_start.wav"),
-	"win":            preload("res://assets/audio/sfx/win.wav"),
-	"lose":           preload("res://assets/audio/sfx/lose.wav"),
+	"tower_shoot":    "res://assets/audio/sfx/tower_shoot.wav",
+	"projectile_hit": "res://assets/audio/sfx/projectile_hit.wav",
+	"enemy_kill":     "res://assets/audio/sfx/enemy_kill.wav",
+	"tower_place":    "res://assets/audio/sfx/tower_place.wav",
+	"tower_upgrade":  "res://assets/audio/sfx/tower_upgrade.wav",
+	"core_damaged":   "res://assets/audio/sfx/core_damaged.wav",
+	"core_destroyed": "res://assets/audio/sfx/core_destroyed.wav",
+	"ui_click":       "res://assets/audio/sfx/ui_click.wav",
+	"ui_click_2":     "res://assets/audio/sfx/ui_click_2.wav",
+	"wave_start":     "res://assets/audio/sfx/wave_start.wav",
+	"win":            "res://assets/audio/sfx/win.wav",
+	"lose":           "res://assets/audio/sfx/lose.wav",
 	# v0.3.0
-	"heartbeat":      preload("res://assets/audio/sfx/heartbeat.wav"),
-	"critical_hit":   preload("res://assets/audio/sfx/critical_hit.wav"),
-	"boss_roar":      preload("res://assets/audio/sfx/boss_roar.wav"),
-	"tower_skill":    preload("res://assets/audio/sfx/tower_skill.wav"),
-	"core_skill":     preload("res://assets/audio/sfx/core_skill.wav"),
-	"branch_pick":    preload("res://assets/audio/sfx/branch_pick.wav"),
-	"whoosh":         preload("res://assets/audio/sfx/whoosh.wav"),
-	"boom":           preload("res://assets/audio/sfx/boom.wav"),
+	"heartbeat":      "res://assets/audio/sfx/heartbeat.wav",
+	"critical_hit":   "res://assets/audio/sfx/critical_hit.wav",
+	"boss_roar":      "res://assets/audio/sfx/boss_roar.wav",
+	"tower_skill":    "res://assets/audio/sfx/tower_skill.wav",
+	"core_skill":     "res://assets/audio/sfx/core_skill.wav",
+	"branch_pick":    "res://assets/audio/sfx/branch_pick.wav",
+	"whoosh":         "res://assets/audio/sfx/whoosh.wav",
+	"boom":           "res://assets/audio/sfx/boom.wav",
 }
 
 # 每个 id 一个 4 个 player 的池,允许同帧多次重叠
 const POOL_SIZE := 4
 var _sfx_pool: Dictionary = {}      # { id: [AudioStreamPlayer, ...] }
 var _sfx_index: Dictionary = {}     # 轮询索引
+var _sfx_streams: Dictionary = {}   # { id: AudioStream } 懒加载缓存
 var _music_player: AudioStreamPlayer
 var _sfx_bus: String = "SFX"
 var _music_bus: String = "Music"
@@ -53,15 +54,30 @@ func _ensure_bus(bus_name: String) -> void:
 		AudioServer.set_bus_name(idx, bus_name)
 		AudioServer.set_bus_send(idx, "Master")
 
+func _load_stream(id: String) -> AudioStream:
+	if _sfx_streams.has(id):
+		return _sfx_streams[id]
+	if not SFX_PATHS.has(id):
+		return null
+	var stream: AudioStream = load(SFX_PATHS[id])
+	if stream == null:
+		push_warning("AudioManager: failed to load sfx '%s'" % id)
+		return null
+	_sfx_streams[id] = stream
+	return stream
+
 func _get_player(id: String) -> AudioStreamPlayer:
 	if not SFX_PATHS.has(id):
 		push_warning("AudioManager: unknown sfx id '%s'" % id)
+		return null
+	var stream := _load_stream(id)
+	if stream == null:
 		return null
 	if not _sfx_pool.has(id):
 		var arr: Array = []
 		for i in POOL_SIZE:
 			var p := AudioStreamPlayer.new()
-			p.stream = SFX_PATHS[id]
+			p.stream = stream
 			p.bus = _sfx_bus
 			add_child(p)
 			arr.append(p)
@@ -83,7 +99,10 @@ func play_sfx(id: String, volume_db: float = 0.0, pitch_scale: float = 1.0) -> v
 func play_music(id: String, fade_in: float = 0.0) -> void:
 	if not SFX_PATHS.has(id):
 		return
-	_music_player.stream = SFX_PATHS[id]
+	var stream := _load_stream(id)
+	if stream == null:
+		return
+	_music_player.stream = stream
 	if fade_in > 0.0:
 		_music_player.volume_db = -40
 		_music_player.play()
