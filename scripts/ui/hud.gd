@@ -35,6 +35,11 @@ const FlashBurst = preload("res://scripts/effects/flash_burst.gd")
 @onready var danger_overlay: ColorRect = $DangerOverlay
 @onready var branch_dialog = $BranchSelectDialog
 
+# 暂停控制（运行时动态构建，避免改动 .tscn）
+@onready var _top_bar: HBoxContainer = $TopRightPanel/Margin/HBoxContainer
+var _pause_button: Button
+var _pause_overlay: Control
+
 @export var available_towers: Array[TowerData] = []
 
 var _current_slot: BuildSlot = null
@@ -77,7 +82,8 @@ func _ready() -> void:
 	if danger_overlay:
 		danger_overlay.color = Color(1.0, 0.0, 0.0, 0.0)
 		danger_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		
+
+	_setup_pause_ui()
 	_populate_build_menu()
 
 func _on_menu_gui_input(event: InputEvent) -> void:
@@ -282,6 +288,54 @@ func _on_speed_button_pressed() -> void:
 func _update_speed_button_text() -> void:
 	if speed_button:
 		speed_button.text = "⏩ %.0fx 速度" % _game_speed
+
+func _setup_pause_ui() -> void:
+	if _top_bar:
+		_pause_button = Button.new()
+		_pause_button.custom_minimum_size = Vector2(44, 30)
+		_pause_button.text = "⏸️"
+		_pause_button.tooltip_text = "暂停 / 继续"
+		_pause_button.pressed.connect(_on_pause_pressed)
+		_top_bar.add_child(_pause_button)
+
+	# 全屏“已暂停”遮罩：拦截游戏世界点击，并提供继续按钮。
+	_pause_overlay = Control.new()
+	_pause_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pause_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_pause_overlay.visible = false
+	var bg := ColorRect.new()
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0, 0, 0, 0.5)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pause_overlay.add_child(bg)
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	_pause_overlay.add_child(vbox)
+	var lbl := Label.new()
+	lbl.text = "⏸  已暂停"
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 40)
+	vbox.add_child(lbl)
+	var resume := Button.new()
+	resume.text = "▶️  继续游戏"
+	resume.custom_minimum_size = Vector2(200, 48)
+	resume.pressed.connect(_on_pause_pressed)
+	vbox.add_child(resume)
+	add_child(_pause_overlay)
+	_update_pause_text()
+
+func _on_pause_pressed() -> void:
+	AudioManager.play_sfx("ui_click")
+	get_tree().paused = not get_tree().paused
+	_update_pause_text()
+
+func _update_pause_text() -> void:
+	var paused := get_tree().paused
+	if _pause_button:
+		_pause_button.text = "▶️" if paused else "⏸️"
+	if _pause_overlay:
+		_pause_overlay.visible = paused
 
 func _process(delta: float) -> void:
 	# 塔技能状态刷新
