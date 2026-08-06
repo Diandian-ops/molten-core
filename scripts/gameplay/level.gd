@@ -53,6 +53,7 @@ func _ready() -> void:
 		spawn_manager.enemy_spawned.connect(_on_enemy_spawned)
 		spawn_manager.all_waves_completed.connect(_on_all_waves_completed)
 		spawn_manager.wave_started.connect(_on_wave_started)
+		spawn_manager.between_wave_started.connect(_on_between_wave_started)
 		spawn_manager.start()
 
 func _process(delta: float) -> void:
@@ -199,6 +200,12 @@ func _on_enemy_died(_enemy: Enemy) -> void:
 func _on_wave_started(wave_index: int, total_waves: int) -> void:
 	if hud and hud.has_method("update_wave_label"):
 		hud.update_wave_label(wave_index + 1, total_waves)
+	if hud and hud.has_method("clear_next_wave_countdown"):
+		hud.clear_next_wave_countdown()
+
+func _on_between_wave_started(next_index: int, delay: float) -> void:
+	if hud and hud.has_method("show_next_wave_countdown"):
+		hud.show_next_wave_countdown(next_index, delay)
 
 func _on_all_waves_completed() -> void:
 	_all_waves_spawned = true

@@ -40,6 +40,13 @@ const FlashBurst = preload("res://scripts/effects/flash_burst.gd")
 var _pause_button: Button
 var _pause_overlay: Control
 
+# 下一波倒计时提示（运行时动态构建）
+var _next_wave_index: int = 0
+var _next_wave_time: float = 0.0
+var _next_wave_active: bool = false
+var _wave_hint: Control
+var _wave_hint_label: Label
+
 @export var available_towers: Array[TowerData] = []
 
 var _current_slot: BuildSlot = null
@@ -84,6 +91,7 @@ func _ready() -> void:
 		danger_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	_setup_pause_ui()
+	_setup_wave_hint()
 	_populate_build_menu()
 
 func _on_menu_gui_input(event: InputEvent) -> void:
@@ -339,7 +347,49 @@ func _update_pause_text() -> void:
 	if _pause_overlay:
 		_pause_overlay.visible = paused
 
+func _setup_wave_hint() -> void:
+	_wave_hint = Control.new()
+	_wave_hint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_wave_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_hint.visible = false
+	var panel := PanelContainer.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	panel.add_theme_constant_override("margin_top", 10)
+	_wave_hint.add_child(panel)
+	_wave_hint_label = Label.new()
+	_wave_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_wave_hint_label.add_theme_font_size_override("font_size", 22)
+	_wave_hint_label.text = ""
+	panel.add_child(_wave_hint_label)
+	add_child(_wave_hint)
+
+## 由 Level 转发 SpawnManager.between_wave_started：启动下一波倒计时显示。
+func show_next_wave_countdown(next_index: int, delay: float) -> void:
+	_next_wave_index = next_index
+	_next_wave_time = max(delay, 0.0)
+	_next_wave_active = true
+	if _wave_hint:
+		_wave_hint.visible = true
+	_update_wave_hint()
+
+## 新波次开始或关卡结束：清除倒计时提示。
+func clear_next_wave_countdown() -> void:
+	_next_wave_active = false
+	if _wave_hint:
+		_wave_hint.visible = false
+
+func _update_wave_hint() -> void:
+	if _wave_hint_label:
+		_wave_hint_label.text = "⚔️ 第 %d 波将在 %.1f 秒后来袭" % [_next_wave_index + 1, max(_next_wave_time, 0.0)]
+
 func _process(delta: float) -> void:
+	# 下一波倒计时（受 time_scale 影响；暂停时 _process 停止，自然冻结）
+	if _next_wave_active:
+		_next_wave_time -= delta
+		if _next_wave_time < 0.0:
+			_next_wave_time = 0.0
+		_update_wave_hint()
+
 	# 塔技能状态刷新
 	if _current_slot and is_instance_valid(_current_slot.current_tower):
 		var tw := _current_slot.current_tower

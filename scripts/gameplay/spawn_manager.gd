@@ -5,6 +5,8 @@ class_name SpawnManager
 signal enemy_spawned(enemy: Enemy)
 signal wave_started(wave_index: int, total_waves: int)
 signal all_waves_completed
+## 两波之间的间隔开始：next_index 为下一波的 0 基索引，delay 为该间隔秒数。
+signal between_wave_started(next_index: int, delay: float)
 
 var _level_data: LevelData
 var _core_position: Vector2
@@ -28,6 +30,8 @@ func _run_waves() -> void:
 		AudioManager.play_sfx("wave_start")
 		wave_started.emit(i, total)
 		await _run_single_wave(_level_data.waves[i])
+		if i < total - 1:
+			between_wave_started.emit(i + 1, _level_data.waves[i].delay_after)
 		await get_tree().create_timer(_level_data.waves[i].delay_after).timeout
 	all_waves_completed.emit()
 
