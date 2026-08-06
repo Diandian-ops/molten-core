@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StoryLog" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1_i1kb8"]
+
+[resource]
+script = ExtResource("1_i1kb8")
+id = "ch1"
+title = "地脉裂痕"
+chapter = "第一章"
+body = "地脉在某处撕裂，暗紫色的裂隙向外吐出扭曲的影。
+暗影行者穿行于光与暗之间，时隐时现，所过之处晶簇尽碎。
+你明白，这不再是偶然的入侵，而是一场有预谋的渗透。"
+unlock_level_id = "level_02"

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StoryLog" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1_wbpiy"]
+
+[resource]
+script = ExtResource("1_wbpiy")
+id = "epilogue"
+title = "锻炉重燃"
+chapter = "尾声"
+body = "深渊领者倒下，裂痕缓缓愈合。
+熔核重新归于平稳的灼热，光，再一次覆盖了这片土地。
+你望向远方尚未熄灭的余烬——守炉人的故事，还未结束。"
+unlock_level_id = "level_03"

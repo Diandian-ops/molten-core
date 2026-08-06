@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StoryLog" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1_b8go0"]
+
+[resource]
+script = ExtResource("1_b8go0")
+id = "ch2"
+title = "锻炉遗迹"
+chapter = "第二章"
+body = "锻炉的废墟之下，封印早已松动。
+深渊领者自最深的裂痕爬出，半血之后便会彻底狂暴，将焦土化为炼狱。
+熔核的搏动越来越急——这是终局的前奏。"
+unlock_level_id = "level_03"

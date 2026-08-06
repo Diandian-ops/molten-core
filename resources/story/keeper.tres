@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StoryLog" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1_ib5uv"]
+
+[resource]
+script = ExtResource("1_ib5uv")
+id = "keeper"
+title = "守炉人"
+chapter = "人物"
+body = "你是这一代的守炉人。
+不记得自己从何而来，只记得胸口有与熔核同频的灼热。
+当裂痕涌出第一个敌人时，你握紧了晶簇——这是你与熔核之间唯一的契约。"

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StoryLog" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1_han4h"]
+
+[resource]
+script = ExtResource("1_han4h")
+id = "prologue"
+title = "熔炉苏醒"
+chapter = "序章"
+body = "熔炉在沉眠中苏醒，第一缕火光刺破黑暗。
+地表传来低沉的震动，熔岩巨像拖着笨重的身躯破土而出。
+你第一次听见熔核的搏动——它醒了，而危机也随之降临。"
+unlock_level_id = "level_01"

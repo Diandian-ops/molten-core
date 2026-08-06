@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StoryLog" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1_avjei"]
+
+[resource]
+script = ExtResource("1_avjei")
+id = "origin"
+title = "熔核起源"
+chapter = "背景"
+body = "在世界的心脏，沉睡著一座永不熄灭的熔核。
+它是锻炉之力的源泉，也是这片焦土上最后的光。
+千百年来，守炉人世代更替，唯独熔核不灭——直到裂痕在地脉深处悄然张开。"
