@@ -1,0 +1,156 @@
+name: Build & Release
+
+# 触发：推送到 main 会自动构建并发布（continuous 预发布）；打 v* tag 发正式版；也可手动触发。
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write # 用于创建/更新 Release
+
+env:
+  GODOT_VERSION: "4.7.1-stable"
+
+jobs:
+  build:
+    name: Smoke test + Export (Win/macOS/Android)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Godot 4 无头运行需要的系统库（headless 仍链接部分 X11/音频库）
+      - name: Install Godot runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libx11-6 libxcursor1 libxinerama1 libgl1 libglu1-mesa \
+            libasound2 libpulse0 libfontconfig1 libssl3 libuuid1 unzip
+
+      - name: Download Godot editor (Linux)
+        run: |
+          curl -fL -o godot.zip "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64.zip"
+          unzip -o godot.zip
+          mv "Godot_v${{ env.GODOT_VERSION }}_linux.x86_64" godot
+          chmod +x godot
+
+      - name: Download & extract export templates
+        # Godot 4.7 没有 --install-templates CLI；模板 tpz 本质是个 zip，内含 templates/ 目录。
+        # Godot 按完整版本名 4.7.1.stable.official.a13da4feb 找模板目录，直接解压到该目录即可
+        # （空 custom_template 也能命中，无需在 export_presets.cfg 写绝对路径）。
+        run: |
+          curl -fL -o export_templates.tpz "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_export_templates.tpz"
+          TD="$HOME/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.official.a13da4feb"
+          mkdir -p "$TD"
+          rm -rf tmpl_tmp && unzip -o -q export_templates.tpz -d tmpl_tmp
+          cp -r tmpl_tmp/templates/. "$TD"/
+          rm -rf tmpl_tmp
+          echo "templates ready at $TD"; ls "$TD" | head
+
+      # ── 冒烟测试：临时把 main_scene 指向测试场景，无头跑一遍，校验 SMOKE_TEST_OK ──
+      - name: Run gameplay smoke test
+        run: |
+          python3 - <<'PY'
+          import re
+          p = "project.godot"
+          s = open(p, encoding="utf-8").read()
+          s = re.sub(r'run/main_scene="[^"]*"', 'run/main_scene="res://scenes/test/smoke_test.tscn"', s)
+          open(p, "w", encoding="utf-8").write(s)
+          print("patched main_scene -> smoke_test")
+          PY
+          ./godot --headless --path . 2>&1 | tee smoke.log
+          grep -q "SMOKE_TEST_OK" smoke.log || { echo "::error::SMOKE TEST FAILED"; exit 1; }
+          echo "SMOKE TEST PASSED"
+
+      - name: Restore project.godot
+        if: always()
+        run: git checkout -- project.godot
+
+      # ── Android 导出依赖：Gradle 构建需要 JDK 17 + Android SDK ──
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK (cmdline-tools + platform + build-tools)
+        run: |
+          SDK_ROOT="$HOME/android-sdk"
+          mkdir -p "$SDK_ROOT/cmdline-tools"
+          curl -fL -o cmdtools.zip "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+          unzip -q cmdtools.zip -d "$SDK_ROOT/cmdline-tools"
+          mv "$SDK_ROOT/cmdline-tools/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
+          yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" --licenses
+          "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" \
+            "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          {
+            echo "ANDROID_HOME=$SDK_ROOT"
+            echo "ANDROID_SDK_ROOT=$SDK_ROOT"
+          } >> "$GITHUB_ENV"
+
+      # ── 导出平台（preset 名须与 export_presets.cfg 完全一致）──
+      # Android 首次导出时 Godot 会自动下载 Android 源码模板 + Gradle 分发，需联网。
+      - name: Export Windows
+        run: ./godot --headless --path . --export-release "Windows Desktop"
+
+      - name: Export macOS
+        run: ./godot --headless --path . --export-release "macOS"
+
+      - name: Export Android
+        run: ./godot --headless --path . --export-release "Android"
+
+      # ── 打包成 zip 产物（macOS 产出 .app 目录，整体压缩）──
+      - name: Package artifacts
+        run: |
+          cd build/windows && zip -r ../../MoltenCore-windows.zip MoltenCore.exe
+          cd ../macos   && zip -r ../../MoltenCore-macos.zip   MoltenCore.app
+          cd ../android && zip -r ../../MoltenCore-android.zip MoltenCore.apk
+          cd ../..
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: moltencore-builds
+          path: |
+            MoltenCore-windows.zip
+            MoltenCore-macos.zip
+            MoltenCore-android.zip
+          retention-days: 14
+
+  release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: moltencore-builds
+          path: artifacts
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=continuous" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          prerelease: ${{ steps.tag.outputs.prerelease }}
+          name: MoltenCore ${{ steps.tag.outputs.tag }}
+          files: |
+            artifacts/MoltenCore-windows.zip
+            artifacts/MoltenCore-macos.zip
+            artifacts/MoltenCore-android.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -46,6 +46,9 @@ __pycache__/
 # ── aionui / 本地工具配置 ──
 .aionrs/
 
+# ── WorkBuddy 本地记忆/工具目录 (含 agent 记忆,不进版本控制) ──
+.workbuddy/
+
 # ── 节点版工具 (如 Volta/nvm) ──
 .node_modules/
 node_modules/
