@@ -28,7 +28,8 @@ var _flash_timer: float = 0.0
 
 # Boss 多阶段
 var _current_phase: int = 0
-var _phase_triggered: bool = false
+var _fired_phases: Dictionary = {}
+var _phase_speed_mult: float = 1.0
 
 # 命中反馈
 var _hit_flash_t: float = 0.0
@@ -107,7 +108,7 @@ func _physics_process(delta: float) -> void:
 			return
 
 	var direction := dist_vec.normalized()
-	velocity = direction * data.move_speed * _slow_factor
+	velocity = direction * data.move_speed * _slow_factor * _phase_speed_mult
 	move_and_slide()
 	rotation = direction.angle()
 
@@ -196,12 +197,14 @@ func _check_boss_phase() -> void:
 		return
 	var ratio := current_health / data.max_health
 	for p in data.boss_phases:
-		if not p.triggered and ratio <= p.hp_threshold:
-			p.triggered = true
+		if _fired_phases.has(p):
+			continue
+		if ratio <= p.hp_threshold:
+			_fired_phases[p] = true
 			_current_phase = p.hp_threshold
-			# 狂暴加速
-			if p.speed_mult != 1.0:
-				pass  # 由调用方处理速度
+			# 狂暴加速：实例内倍率，作用于移动速度（不再写共享资源）
+			if p.speed_mult > 1.0:
+				_phase_speed_mult = max(_phase_speed_mult, p.speed_mult)
 			if p.spawn_interval > 0.0:
 				var sc := get_tree().current_scene
 				if sc and sc.has_method("_on_boss_phase_passed"):
@@ -212,4 +215,4 @@ func _check_boss_phase() -> void:
 			var cam := get_viewport().get_camera_2d()
 			if cam and cam.has_method("add_trauma"):
 				cam.add_trauma(0.5)
-			break
+			# 不 break：允许同帧连续跨过多个阈值（如从满血直接掉到 25%）
