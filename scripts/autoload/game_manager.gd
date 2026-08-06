@@ -43,6 +43,12 @@ func damage_core(amount: int) -> void:
 	core_energy = max(0, core_energy - amount)
 	core_energy_changed.emit(core_energy, core_energy_max)
 
+## v0.3.0: 熔核血量由 Core 节点自管, 这里仅同步给 UI.
+func set_core_energy(current: int, max_value: int) -> void:
+	core_energy = current
+	core_energy_max = max_value
+	core_energy_changed.emit(core_energy, core_energy_max)
+
 func is_core_destroyed() -> bool:
 	return core_energy <= 0
 

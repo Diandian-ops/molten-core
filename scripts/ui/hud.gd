@@ -2,6 +2,9 @@ extends Control
 ## 全功能 HUD：包含左上角建塔晶币面板、右上角熔核生命/波次栏、建塔按键高亮/灰暗控制与 Inspector 控制台。
 class_name HUD
 
+const ParticleBurst = preload("res://scripts/effects/particle_burst.gd")
+const FlashBurst = preload("res://scripts/effects/flash_burst.gd")
+
 @onready var currency_label: Label = $TopRightPanel/Margin/HBoxContainer/CurrencyLabel
 @onready var wave_label: Label = $TopRightPanel/Margin/HBoxContainer/WaveLabel
 @onready var energy_bar: ProgressBar = $TopRightPanel/Margin/HBoxContainer/EnergyContainer/EnergyBar
@@ -16,11 +19,28 @@ class_name HUD
 @onready var tower_stats_label: Label = $InspectorMenu/Margin/VBoxContainer/StatsLabel
 @onready var upgrade_button: Button = $InspectorMenu/Margin/VBoxContainer/UpgradeButton
 @onready var sell_button: Button = $InspectorMenu/Margin/VBoxContainer/SellButton
+@onready var skill_button: Button = $InspectorMenu/Margin/VBoxContainer/SkillButton
+@onready var skill_cd_label: Label = $InspectorMenu/Margin/VBoxContainer/SkillCDLabel
+
+# 熔核技能底栏
+@onready var core_skills_bar: HBoxContainer = $CoreSkillsBar
+@onready var heal_button: Button = $CoreSkillsBar/HealButton
+@onready var shock_button: Button = $CoreSkillsBar/ShockButton
+@onready var shield_button: Button = $CoreSkillsBar/ShieldButton
+@onready var heal_cd_label: Label = $CoreSkillsBar/HealButton/CDLabel
+@onready var shock_cd_label: Label = $CoreSkillsBar/ShockButton/CDLabel
+@onready var shield_cd_label: Label = $CoreSkillsBar/ShieldButton/CDLabel
+
+# 濒死红边 + 心跳层
+@onready var danger_overlay: ColorRect = $DangerOverlay
+@onready var branch_dialog = $BranchSelectDialog
 
 @export var available_towers: Array[TowerData] = []
 
 var _current_slot: BuildSlot = null
 var _game_speed: float = 1.0
+var _heartbeat_timer: float = 0.0
+var _danger_pulse: float = 0.0
 
 func _ready() -> void:
 	GameManager.currency_changed.connect(_on_currency_changed)
@@ -43,6 +63,20 @@ func _ready() -> void:
 		upgrade_button.pressed.connect(_on_upgrade_pressed)
 	if sell_button:
 		sell_button.pressed.connect(_on_sell_pressed)
+	if skill_button:
+		skill_button.pressed.connect(_on_skill_pressed)
+		
+	# 熔核技能
+	for b in [heal_button, shock_button, shield_button]:
+		if b:
+			b.pressed.connect(_on_core_skill_pressed.bind(b.name))
+	if branch_dialog:
+		branch_dialog.visible = false
+		branch_dialog.branch_selected.connect(_on_branch_selected)
+		
+	if danger_overlay:
+		danger_overlay.color = Color(1.0, 0.0, 0.0, 0.0)
+		danger_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		
 	_populate_build_menu()
 
@@ -185,10 +219,31 @@ func _on_tower_button_pressed(tower_data: TowerData) -> void:
 func _on_upgrade_pressed() -> void:
 	if _current_slot and is_instance_valid(_current_slot.current_tower):
 		var tower := _current_slot.current_tower
+		# 分支选择优先
+		if tower.is_branch_choice_pending():
+			AudioManager.play_sfx("ui_click")
+			_show_branch_dialog(tower)
+			return
 		if tower.upgrade():
 			AudioManager.play_sfx("ui_click")
 			_refresh_inspector_info(tower)
 			GameManager.currency_changed.emit(GameManager.currency)
+
+func _show_branch_dialog(tower: Tower) -> void:
+	if not branch_dialog:
+		return
+	get_tree().paused = true
+	branch_dialog.show_for_tower(tower, tower.data.branch_a, tower.data.branch_b)
+	branch_dialog.visible = true
+	if not branch_dialog.branch_selected.is_connected(_on_branch_dialog_closed):
+		branch_dialog.branch_selected.connect(_on_branch_dialog_closed)
+
+func _on_branch_dialog_closed(_id: String) -> void:
+	branch_dialog.visible = false
+	get_tree().paused = false
+	if _current_slot and is_instance_valid(_current_slot.current_tower):
+		_refresh_inspector_info(_current_slot.current_tower)
+		GameManager.currency_changed.emit(GameManager.currency)
 
 func _on_sell_pressed() -> void:
 	if _current_slot:
@@ -227,3 +282,95 @@ func _on_speed_button_pressed() -> void:
 func _update_speed_button_text() -> void:
 	if speed_button:
 		speed_button.text = "⏩ %.0fx 速度" % _game_speed
+
+func _process(delta: float) -> void:
+	# 塔技能状态刷新
+	if _current_slot and is_instance_valid(_current_slot.current_tower):
+		var tw := _current_slot.current_tower
+		if skill_button:
+			var can := tw.can_use_skill()
+			skill_button.disabled = not can
+			if tw.data.skill_name != "":
+				skill_button.text = "⚡ %s (💎%d)" % [tw.data.skill_name, tw.data.skill_cost]
+			else:
+				skill_button.text = "(该塔无技能)"
+				skill_button.disabled = true
+			if skill_cd_label:
+				if tw.get_skill_cooldown_remaining() > 0.0:
+					skill_cd_label.text = "CD: %.1fs" % tw.get_skill_cooldown_remaining()
+					skill_cd_label.visible = true
+				else:
+					skill_cd_label.visible = false
+	# 熔核技能按钮
+	_refresh_core_skill_buttons()
+	# 濒死心跳 + 红边
+	_update_danger(delta)
+
+func _refresh_core_skill_buttons() -> void:
+	var core := get_tree().get_first_node_in_group("core") as Core
+	if not core:
+		return
+	_update_core_btn(heal_button, heal_cd_label, core, "heal", "💚 治愈")
+	_update_core_btn(shock_button, shock_cd_label, core, "shock", "🌊 震波")
+	_update_core_btn(shield_button, shield_cd_label, core, "shield", "🛡️ 护盾")
+
+func _update_core_btn(btn: Button, cd_lbl: Label, core: Core, id: String, label: String) -> void:
+	if not btn:
+		return
+	var can := core.can_use_skill(id)
+	btn.disabled = not can
+	btn.text = "%s (💎%d)" % [label, core.skill_cost(id)]
+	if cd_lbl:
+		var rem := core.get_skill_cd_remaining(id)
+		if rem > 0.0:
+			cd_lbl.text = "%.0fs" % rem
+			cd_lbl.visible = true
+		else:
+			cd_lbl.visible = false
+
+func _on_core_skill_pressed(btn_name: String) -> void:
+	var core := get_tree().get_first_node_in_group("core") as Core
+	if not core:
+		return
+	var id := "heal"
+	if btn_name == "ShockButton": id = "shock"
+	elif btn_name == "ShieldButton": id = "shield"
+	core.use_skill(id)
+
+func _on_skill_pressed() -> void:
+	if _current_slot and is_instance_valid(_current_slot.current_tower):
+		var tw := _current_slot.current_tower
+		tw.use_skill()
+		_refresh_inspector_info(tw)
+		GameManager.currency_changed.emit(GameManager.currency)
+
+func _on_branch_selected(branch_id: String) -> void:
+	if not _current_slot or not is_instance_valid(_current_slot.current_tower):
+		return
+	var tw := _current_slot.current_tower
+	tw.set_branch_choice(branch_id)
+	var new_data: TowerData = tw.data.branch_a if branch_id == "a" else tw.data.branch_b
+	if new_data:
+		tw.transform_to(new_data)
+		_refresh_inspector_info(tw)
+		GameManager.currency_changed.emit(GameManager.currency)
+
+func _update_danger(delta: float) -> void:
+	var core := get_tree().get_first_node_in_group("core") as Core
+	if not core or not danger_overlay:
+		return
+	var hp := core.get_hp()
+	var max_hp := core.max_energy
+	var ratio := float(hp) / float(max_hp) if max_hp > 0 else 1.0
+	if ratio <= 0.2:
+		_danger_pulse += delta * 3.0
+		var a := (sin(_danger_pulse) + 1.0) * 0.5 * 0.5
+		danger_overlay.color = Color(1.0, 0.0, 0.0, a)
+		_heartbeat_timer -= delta
+		if _heartbeat_timer <= 0.0:
+			AudioManager.play_sfx("heartbeat", -4.0, 1.0)
+			_heartbeat_timer = 0.9
+	else:
+		_danger_pulse = 0.0
+		danger_overlay.color = Color(1.0, 0.0, 0.0, 0.0)
+		_heartbeat_timer = 0.0
