@@ -80,7 +80,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="SpeedButton" type="Button" parent="TopRightPanel/Margin/HBoxContainer"]
-custom_minimum_size = Vector2(92, 30)
+custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 text = "⏩ 1x 速度"
 
@@ -148,17 +148,17 @@ text = "攻击力: 10
 攻速: 1.0s/发"
 
 [node name="UpgradeButton" type="Button" parent="InspectorMenu/Margin/VBoxContainer"]
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "⬆️ 升级 (💎 40)"
 
 [node name="SellButton" type="Button" parent="InspectorMenu/Margin/VBoxContainer"]
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "💰 出售 (+💎 35)"
 
 [node name="SkillButton" type="Button" parent="InspectorMenu/Margin/VBoxContainer"]
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "⚡ 技能"
 

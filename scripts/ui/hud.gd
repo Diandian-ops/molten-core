@@ -47,6 +47,12 @@ var _next_wave_active: bool = false
 var _wave_hint: Control
 var _wave_hint_label: Label
 
+# 安全区（刘海/手势条）内缩量，桌面端恒为 0，无副作用
+var _safe_left: float = 0.0
+var _safe_top: float = 0.0
+var _safe_right: float = 0.0
+var _safe_bottom: float = 0.0
+
 @export var available_towers: Array[TowerData] = []
 
 var _current_slot: BuildSlot = null
@@ -93,6 +99,10 @@ func _ready() -> void:
 	_setup_pause_ui()
 	_setup_wave_hint()
 	_populate_build_menu()
+
+	# 移动端安全区适配：连接视口尺寸变化并立即应用一次
+	get_viewport().size_changed.connect(_on_viewport_size_changed)
+	_apply_safe_area()
 
 func _on_menu_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -302,7 +312,7 @@ func _update_speed_button_text() -> void:
 func _setup_pause_ui() -> void:
 	if _top_bar:
 		_pause_button = Button.new()
-		_pause_button.custom_minimum_size = Vector2(44, 30)
+		_pause_button.custom_minimum_size = Vector2(48, 40)
 		_pause_button.text = "⏸️"
 		_pause_button.tooltip_text = "暂停 / 继续"
 		_pause_button.pressed.connect(_on_pause_pressed)
@@ -332,6 +342,20 @@ func _setup_pause_ui() -> void:
 	resume.custom_minimum_size = Vector2(200, 48)
 	resume.pressed.connect(_on_pause_pressed)
 	vbox.add_child(resume)
+
+	# 暂停菜单：重试当前关卡 / 返回主菜单（绕过暂停状态直接场景切换）
+	var retry := Button.new()
+	retry.text = "🔄  重试关卡"
+	retry.custom_minimum_size = Vector2(200, 48)
+	retry.pressed.connect(_on_retry_pressed)
+	vbox.add_child(retry)
+
+	var to_menu := Button.new()
+	to_menu.text = "🏠  返回主菜单"
+	to_menu.custom_minimum_size = Vector2(200, 48)
+	to_menu.pressed.connect(_on_return_menu_pressed)
+	vbox.add_child(to_menu)
+
 	add_child(_pause_overlay)
 	_update_pause_text()
 
@@ -346,6 +370,45 @@ func _update_pause_text() -> void:
 		_pause_button.text = "▶️" if paused else "⏸️"
 	if _pause_overlay:
 		_pause_overlay.visible = paused
+
+func _on_retry_pressed() -> void:
+	AudioManager.play_sfx("ui_click")
+	var path := GameManager.current_level_path
+	if path != "":
+		SceneRouter.go_to_level(path)
+	else:
+		SceneRouter.go_to_main_menu()
+
+func _on_return_menu_pressed() -> void:
+	AudioManager.play_sfx("ui_click_2")
+	SceneRouter.go_to_main_menu()
+
+func _on_viewport_size_changed() -> void:
+	_apply_safe_area()
+
+## 安全区内缩：避免移动端刘海/手势条遮挡角落 UI。
+## 桌面端 get_display_safe_area 返回完整窗口矩形，内缩量恒为 0，无副作用。
+func _apply_safe_area() -> void:
+	if not DisplayServer.has_method("get_display_safe_area"):
+		return
+	# get_display_safe_area 是 DisplayServer 单例的实例方法，直接以单例形式调用即可。
+	var safe := DisplayServer.get_display_safe_area()
+	var win := DisplayServer.window_get_size()
+	_safe_left = max(safe.position.x, 0.0)
+	_safe_top = max(safe.position.y, 0.0)
+	_safe_right = max(float(win.x) - safe.end.x, 0.0)
+	_safe_bottom = max(float(win.y) - safe.end.y, 0.0)
+
+	# 右上信息栏：避开顶部刘海与右侧手势区
+	if has_node("TopRightPanel"):
+		var p := get_node("TopRightPanel") as Control
+		p.offset_top = 16.0 + _safe_top
+		p.offset_right = -20.0 - _safe_right
+	# 底部熔核技能栏：避开底部 Home 指示条
+	if has_node("CoreSkillsBar"):
+		var b := get_node("CoreSkillsBar") as Control
+		b.offset_left = 16.0 + _safe_left
+		b.offset_bottom = -16.0 - _safe_bottom
 
 func _setup_wave_hint() -> void:
 	_wave_hint = Control.new()

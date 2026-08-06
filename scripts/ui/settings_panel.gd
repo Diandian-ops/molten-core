@@ -81,9 +81,11 @@ func _build_ui() -> void:
 	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	var reset := Button.new()
 	reset.text = "重置为默认"
+	reset.custom_minimum_size = Vector2(140, 44)
 	reset.pressed.connect(_on_reset_pressed)
 	var close := Button.new()
 	close.text = "关闭"
+	close.custom_minimum_size = Vector2(140, 44)
 	close.pressed.connect(_on_close_pressed)
 	btn_row.add_child(reset)
 	btn_row.add_child(close)

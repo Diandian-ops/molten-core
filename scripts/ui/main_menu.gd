@@ -50,7 +50,7 @@ func _build_buttons() -> void:
 func _make_button(text: String) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.custom_minimum_size = Vector2(0, 50)
+	b.custom_minimum_size = Vector2(0, 54)
 	b.modulate = Color(1.0, 1.0, 1.0, 0.0)  # 入场淡入
 	return b
 
