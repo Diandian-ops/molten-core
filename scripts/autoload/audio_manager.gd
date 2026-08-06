@@ -45,6 +45,14 @@ func _ready() -> void:
 	_music_player = AudioStreamPlayer.new()
 	_music_player.bus = _music_bus
 	add_child(_music_player)
+	# 应用已保存的音量设置（GameManager 已在自身 _ready 中完成 load_progress）
+	_apply_saved_volumes()
+
+## 把关卡/设置的音量还原到对应总线。
+func _apply_saved_volumes() -> void:
+	for bus in GameManager.BUS_MAP.keys():
+		var lin: float = GameManager.get_volume(bus)
+		set_bus_volume(GameManager.BUS_MAP[bus], GameManager.linear_to_volume_db(lin))
 
 func _ensure_bus(bus_name: String) -> void:
 	var idx := AudioServer.get_bus_index(bus_name)

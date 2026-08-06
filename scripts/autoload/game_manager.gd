@@ -6,6 +6,9 @@ signal core_energy_changed(current: int, max_value: int)
 
 const SAVE_PATH := "user://molten_core_save.json"
 
+## 总线名映射：settings 的 key → AudioServer 总线名。
+const BUS_MAP := {"master": "Master", "sfx": "SFX", "music": "Music"}
+
 var currency: int = 0
 var core_energy: int = 0
 var core_energy_max: int = 0
@@ -17,6 +20,9 @@ var current_level_path: String = ""
 var level_stars: Dictionary = {}
 ## 已解锁的关卡 id 列表，序章关卡默认解锁。
 var unlocked_levels: Array = ["level_01"]
+
+## 音频设置：线性音量 0.0~1.0，key 见 BUS_MAP。
+var settings: Dictionary = {"master": 1.0, "sfx": 1.0, "music": 1.0}
 
 func _ready() -> void:
 	load_progress()
@@ -65,10 +71,28 @@ func is_level_unlocked(level_id: String) -> bool:
 func get_stars_for(level_id: String) -> int:
 	return level_stars.get(level_id, 0)
 
+func get_volume(bus: String) -> float:
+	return settings.get(bus, 1.0) as float
+
+## 线性音量(0~1) → 分贝。手算避免依赖特定 Godot 版本的 AudioServer 静态方法。
+static func linear_to_volume_db(linear: float) -> float:
+	if linear <= 0.0001:
+		return -80.0
+	return 20.0 * log(linear) / log(10.0)
+
+## 设置某总线音量（线性 0~1），实时生效并持久化。
+func set_volume(bus: String, linear: float) -> void:
+	var v := clampf(linear, 0.0, 1.0)
+	settings[bus] = v
+	var bus_name: String = BUS_MAP.get(bus, "Master")
+	AudioManager.set_bus_volume(bus_name, linear_to_volume_db(v))
+	save_progress()
+
 func save_progress() -> void:
 	var data := {
 		"level_stars": level_stars,
 		"unlocked_levels": unlocked_levels,
+		"settings": settings,
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
@@ -90,3 +114,8 @@ func load_progress() -> void:
 		level_stars = parsed["level_stars"]
 	if parsed.has("unlocked_levels"):
 		unlocked_levels = parsed["unlocked_levels"]
+	if parsed.has("settings") and typeof(parsed["settings"]) == TYPE_DICTIONARY:
+		var s: Dictionary = parsed["settings"]
+		for key in BUS_MAP.keys():
+			if s.has(key) and typeof(s[key]) == TYPE_FLOAT:
+				settings[key] = s[key]

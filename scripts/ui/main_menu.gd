@@ -1,5 +1,5 @@
 extends Control
-## 主菜单：开始 / 继续 / 剧情日志 / 退出。氛围版（动态背景由 EmberBackground 提供）。
+## 主菜单：开始 / 继续 / 剧情日志 / 设置 / 退出。氛围版（动态背景由 EmberBackground 提供）。
 class_name MainMenu
 
 ## 已解锁关卡 id → 资源路径（与 levels/ 下 .tres 对应）。
@@ -13,7 +13,11 @@ const LEVEL_PATHS := {
 @onready var subtitle_label: Label = $CenterContainer/VBoxContainer/SubTitleLabel
 @onready var button_container: VBoxContainer = $CenterContainer/VBoxContainer/ButtonContainer
 
+var _settings_panel
+
 func _ready() -> void:
+	_settings_panel = preload("res://scripts/ui/settings_panel.gd").new()
+	add_child(_settings_panel)
 	_build_buttons()
 	_play_intro()
 
@@ -32,12 +36,15 @@ func _build_buttons() -> void:
 	cont.pressed.connect(_on_continue_pressed)
 	var story := _make_button("📖  剧情日志")
 	story.pressed.connect(_on_story_pressed)
+	var settings := _make_button("⚙️  设置")
+	settings.pressed.connect(_on_settings_pressed)
 	var quit := _make_button("🚪  退出游戏")
 	quit.pressed.connect(_on_quit_pressed)
 
 	button_container.add_child(start)
 	button_container.add_child(cont)
 	button_container.add_child(story)
+	button_container.add_child(settings)
 	button_container.add_child(quit)
 
 func _make_button(text: String) -> Button:
@@ -65,6 +72,10 @@ func _on_continue_pressed() -> void:
 func _on_story_pressed() -> void:
 	AudioManager.play_sfx("ui_click")
 	SceneRouter.go_to_story_log()
+
+func _on_settings_pressed() -> void:
+	AudioManager.play_sfx("ui_click")
+	_settings_panel.toggle()
 
 func _on_quit_pressed() -> void:
 	AudioManager.play_sfx("ui_click_2")
