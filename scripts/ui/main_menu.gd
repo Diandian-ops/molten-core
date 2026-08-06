@@ -82,6 +82,17 @@ func _on_quit_pressed() -> void:
 	get_tree().quit()
 
 func _play_intro() -> void:
+	# 减弱动效：直接置最终态，跳过所有补间动画
+	if GameManager.reduce_motion:
+		if title_label:
+			title_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		if subtitle_label:
+			subtitle_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		for b in button_container.get_children():
+			if b is Button:
+				b.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		return
+
 	# 标题上浮淡入
 	if title_label:
 		title_label.modulate = Color(1.0, 1.0, 1.0, 0.0)

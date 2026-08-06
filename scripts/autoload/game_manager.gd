@@ -24,8 +24,14 @@ var unlocked_levels: Array = ["level_01"]
 ## 音频设置：线性音量 0.0~1.0，key 见 BUS_MAP。
 var settings: Dictionary = {"master": 1.0, "sfx": 1.0, "music": 1.0}
 
+## 减弱动效：跳过菜单入场动画、游戏内非必要特效。
+var reduce_motion: bool = false
+## 全屏：启动时与切换时应用窗口模式。
+var fullscreen: bool = false
+
 func _ready() -> void:
 	load_progress()
+	_apply_window_mode()
 
 func reset_run(starting_currency: int, starting_energy: int) -> void:
 	currency = starting_currency
@@ -88,11 +94,29 @@ func set_volume(bus: String, linear: float) -> void:
 	AudioManager.set_bus_volume(bus_name, linear_to_volume_db(v))
 	save_progress()
 
+## 减弱动效开关，实时生效并持久化（菜单读取该值决定是否播放入场动画）。
+func set_reduce_motion(value: bool) -> void:
+	reduce_motion = value
+	save_progress()
+
+## 全屏开关，立即切换窗口模式并持久化。
+func set_fullscreen(value: bool) -> void:
+	fullscreen = value
+	_apply_window_mode()
+	save_progress()
+
+## 根据 fullscreen 标志设置窗口模式；headless 下无副作用。
+func _apply_window_mode() -> void:
+	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+	DisplayServer.window_set_mode(mode)
+
 func save_progress() -> void:
 	var data := {
 		"level_stars": level_stars,
 		"unlocked_levels": unlocked_levels,
 		"settings": settings,
+		"reduce_motion": reduce_motion,
+		"fullscreen": fullscreen,
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
@@ -119,3 +143,7 @@ func load_progress() -> void:
 		for key in BUS_MAP.keys():
 			if s.has(key) and typeof(s[key]) == TYPE_FLOAT:
 				settings[key] = s[key]
+	if parsed.has("reduce_motion") and typeof(parsed["reduce_motion"]) == TYPE_BOOL:
+		reduce_motion = parsed["reduce_motion"]
+	if parsed.has("fullscreen") and typeof(parsed["fullscreen"]) == TYPE_BOOL:
+		fullscreen = parsed["fullscreen"]

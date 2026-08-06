@@ -25,7 +25,7 @@ func _build_ui() -> void:
 
 	var panel := PanelContainer.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(360, 320)
+	panel.custom_minimum_size = Vector2(360, 420)
 	add_child(panel)
 
 	var vbox := VBoxContainer.new()
@@ -54,6 +54,29 @@ func _build_ui() -> void:
 		vbox.add_child(row)
 		_sliders[bus] = slider
 
+	# 减弱动效 + 全屏开关
+	var motion_box := HBoxContainer.new()
+	var motion_label := Label.new()
+	motion_label.text = "减弱动效"
+	motion_label.custom_minimum_size = Vector2(64, 0)
+	var motion_cb := CheckBox.new()
+	motion_cb.button_pressed = GameManager.reduce_motion
+	motion_cb.toggled.connect(_on_reduce_motion_toggled)
+	motion_box.add_child(motion_label)
+	motion_box.add_child(motion_cb)
+	vbox.add_child(motion_box)
+
+	var fs_box := HBoxContainer.new()
+	var fs_label := Label.new()
+	fs_label.text = "全屏"
+	fs_label.custom_minimum_size = Vector2(64, 0)
+	var fs_cb := CheckBox.new()
+	fs_cb.button_pressed = GameManager.fullscreen
+	fs_cb.toggled.connect(_on_fullscreen_toggled)
+	fs_box.add_child(fs_label)
+	fs_box.add_child(fs_cb)
+	vbox.add_child(fs_box)
+
 	var btn_row := HBoxContainer.new()
 	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	var reset := Button.new()
@@ -70,6 +93,14 @@ func _on_volume_changed(value: float, bus: String) -> void:
 	GameManager.set_volume(bus, value)
 	if not _applying and bus == "sfx":
 		AudioManager.play_sfx("ui_click")
+
+func _on_reduce_motion_toggled(value: bool) -> void:
+	GameManager.set_reduce_motion(value)
+	AudioManager.play_sfx("ui_click")
+
+func _on_fullscreen_toggled(value: bool) -> void:
+	GameManager.set_fullscreen(value)
+	AudioManager.play_sfx("ui_click")
 
 func _on_reset_pressed() -> void:
 	_applying = true
