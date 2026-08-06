@@ -20,6 +20,8 @@ func _ready() -> void:
 	add_child(_settings_panel)
 	_build_buttons()
 	_play_intro()
+	# BGM 钩子：主菜单背景乐（缺资产时 play_music 内部守卫使其为无害空操作）。
+	AudioManager.play_music("bgm_menu", 1.5)
 
 func _build_buttons() -> void:
 	if not button_container:

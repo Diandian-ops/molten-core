@@ -36,4 +36,6 @@ func go_to_result(victory: bool, stars: int, level_data: LevelData) -> void:
 ## 否则在 _ready() 里直接跳转会触发 "Parent node is busy" 报错。
 func _change_scene_deferred(path: String) -> void:
 	get_tree().paused = false
+	# 场景切换通用过渡音（whoosh）；缺资产时为无害空操作。
+	AudioManager.play_sfx("whoosh")
 	get_tree().call_deferred("change_scene_to_file", path)

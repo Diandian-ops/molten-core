@@ -173,6 +173,9 @@ func _die_and_reward() -> void:
 	_dead = true
 	GameManager.add_currency(data.currency_reward)
 	AudioManager.play_sfx("enemy_kill", 0.0, 0.85 + randf() * 0.3)
+	# Boss 死亡额外叠一层爆炸轰鸣；普通小怪不播，避免杀怪音效过载。
+	if is_boss():
+		AudioManager.play_sfx("boom", -2.0, 0.9 + randf() * 0.2)
 	# 飘钱
 	if get_tree().current_scene:
 		FloatingText.spawn(get_tree().current_scene, global_position + Vector2(0,-10), "+%d" % data.currency_reward, Color(1.0, 0.85, 0.2), 40.0, 0.8)

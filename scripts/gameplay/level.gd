@@ -26,6 +26,8 @@ func _ready() -> void:
 	# 关卡级时间缩放复位：保证每关从 1x 开始（与全新 HUD 的显示一致），
 	# 也避免上一关残留的 2x/3x 污染本关。SceneRouter 已复位 paused，此处只管 time_scale。
 	Engine.time_scale = 1.0
+	# BGM 钩子：关卡背景乐（缺资产时为无害空操作；会覆盖菜单 BGM）。
+	AudioManager.play_music("bgm_level", 1.5)
 
 	if level_data == null:
 		var path: String = GameManager.current_level_path

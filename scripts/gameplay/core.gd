@@ -91,6 +91,8 @@ func heal(amount: int) -> void:
 func _destroy_core() -> void:
 	# 摧毁: 黑屏 + 粒子爆发 + 失败音
 	AudioManager.play_sfx("core_destroyed")
+	# 熔核崩毁叠加爆炸轰鸣，强化终局打击感。
+	AudioManager.play_sfx("boom", -2.0)
 	if get_tree().current_scene:
 		ParticleBurst.spawn(get_tree().current_scene, global_position, Color(1.0, 0.4, 0.1), 60, 300.0, 1.2, 8.0)
 		var cam := get_viewport().get_camera_2d()

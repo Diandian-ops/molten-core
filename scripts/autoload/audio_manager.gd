@@ -25,6 +25,11 @@ const SFX_PATHS := {
 	"branch_pick":    "res://assets/audio/sfx/branch_pick.wav",
 	"whoosh":         "res://assets/audio/sfx/whoosh.wav",
 	"boom":           "res://assets/audio/sfx/boom.wav",
+	# —— 背景音乐（BGM）占位钩子 ——
+	# 把对应音频文件放入 assets/audio/bgm/ 后，取消下面两行注释即可启用 BGM。
+	# play_music() 内建 SFX_PATHS.has(id) 守卫：注释状态下调用是无害空操作，不会报警。
+	# "bgm_menu":  "res://assets/audio/bgm/bgm_menu.ogg",
+	# "bgm_level": "res://assets/audio/bgm/bgm_level.ogg",
 }
 
 # 每个 id 一个 4 个 player 的池,允许同帧多次重叠
