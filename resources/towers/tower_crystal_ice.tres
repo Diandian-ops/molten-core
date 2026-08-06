@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/tower.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "tower_crystal_ice"
+display_name = "寒冰之心"
+description = "减速从 50% 提升到 80%，每次攻击额外附带减速"
+cost = 0
+damage = 3.0
+attack_range = 120.0
+attack_interval = 1.8
+splash_radius = 0.0
+slow_factor = 0.8
+slow_duration = 2.5
+base_upgrade_cost = 0
+damage_per_level = 2.0
+range_per_level = 20.0
+max_level = 3
+skill_name = "冰封领域"
+skill_description = "全图减速 80% 持续 3 秒"
+skill_cost = 50
+skill_cooldown = 15.0
+skill_radius = 400.0
+skill_damage = 0
+skill_slow = 0.8
+skill_slow_duration = 3.0
+has_branch = false
+scene = ExtResource("2")

@@ -1,20 +1,38 @@
-[gd_resource type="Resource" script_class="TowerData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="TowerData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/tower.tscn" id="2"]
-[ext_resource type="Texture2D" path="res://assets/kenney_td/tiles/tower_flame_icon.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/kenney_td/tiles/tower_crystal_icon.png" id="3"]
+[ext_resource type="Resource" path="res://resources/towers/tower_flame_burn.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/towers/tower_flame_explosive.tres" id="5"]
 
 [resource]
 script = ExtResource("1")
 id = "tower_flame"
 display_name = "熔火塔"
-description = "持续灼烧单体敌人的基础输出塔。"
+description = "持续灼烧单体敌人的基础输出塔，升级后进化出灼烧或爆炸分支。"
 cost = 50
-damage = 10.0
+damage = 20.0
 attack_range = 150.0
 attack_interval = 1.0
 splash_radius = 0.0
 slow_factor = 0.0
 slow_duration = 0.0
+base_upgrade_cost = 30
+damage_per_level = 8.0
+range_per_level = 20.0
+max_level = 2
+skill_name = "烈焰风暴"
+skill_description = "锥形范围灼烧，造成 80 伤害"
+skill_cost = 50
+skill_cooldown = 15.0
+skill_radius = 200.0
+skill_cone_angle = 90.0
+skill_damage = 80
+skill_slow = 0.0
+skill_slow_duration = 0.0
+has_branch = true
+branch_a = ExtResource("4")
+branch_b = ExtResource("5")
 scene = ExtResource("2")
 icon = ExtResource("3")

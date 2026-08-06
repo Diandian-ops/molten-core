@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/tower.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "tower_flame_burn"
+display_name = "灼烧之心"
+description = "持续灼烧，每秒额外附加 5 点燃烧伤害，连续攻击刷新"
+cost = 0
+damage = 30.0
+attack_range = 170.0
+attack_interval = 0.9
+splash_radius = 0.0
+slow_factor = 0.0
+slow_duration = 0.0
+base_upgrade_cost = 0
+damage_per_level = 10.0
+range_per_level = 25.0
+max_level = 3
+skill_name = "烈焰爆发"
+skill_description = "对目标造成 180 点爆发伤害并灼烧周围"
+skill_cost = 50
+skill_cooldown = 18.0
+skill_radius = 150.0
+skill_cone_angle = 0.0
+skill_damage = 180
+skill_slow = 0.0
+skill_slow_duration = 0.0
+has_branch = false
+scene = ExtResource("2")

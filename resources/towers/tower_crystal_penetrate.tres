@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/tower.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "tower_crystal_penetrate"
+display_name = "穿透水晶"
+description = "攻击翻倍，可穿透多个敌人，伤害提升到 8"
+cost = 0
+damage = 8.0
+attack_range = 160.0
+attack_interval = 1.5
+splash_radius = 0.0
+slow_factor = 0.0
+slow_duration = 0.0
+base_upgrade_cost = 0
+damage_per_level = 3.0
+range_per_level = 25.0
+max_level = 3
+skill_name = "棱镜爆裂"
+skill_description = "发射一圈穿透水晶，对周围所有敌人造成 120 伤害"
+skill_cost = 60
+skill_cooldown = 20.0
+skill_radius = 220.0
+skill_damage = 120
+skill_slow = 0.0
+skill_slow_duration = 0.0
+has_branch = false
+scene = ExtResource("2")

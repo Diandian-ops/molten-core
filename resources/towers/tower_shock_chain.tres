@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/tower.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "tower_shock_chain"
+display_name = "雷链之心"
+description = "每次攻击会弹射到 3 个额外目标，总伤害更高"
+cost = 0
+damage = 25.0
+attack_range = 190.0
+attack_interval = 1.4
+splash_radius = 0.0
+slow_factor = 0.0
+slow_duration = 0.0
+base_upgrade_cost = 0
+damage_per_level = 12.0
+range_per_level = 30.0
+max_level = 3
+skill_name = "万雷天牢"
+skill_description = "召唤 5 道落雷随机打击敌人"
+skill_cost = 70
+skill_cooldown = 22.0
+skill_radius = 600.0
+skill_cone_angle = 0.0
+skill_damage = 200
+skill_slow = 0.0
+skill_slow_duration = 0.0
+skill_stun = 0.0
+has_branch = false
+scene = ExtResource("2")
