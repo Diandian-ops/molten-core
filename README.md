@@ -111,4 +111,4 @@ Godot 使用「导出模板」（Export Templates）为每个目标平台打包�
 - **macOS**: `build/macos/MoltenCore.app` (164 MB，Universal Binary，支持 Intel + Apple Silicon)
 - **Windows**: `build/windows/MoltenCore.exe` (105 MB，x86_64)
 
-两个平台均已使用 Godot 4.7.1 导出模板构建，可直接运行。最近一次重新导出为 2026-08-06（v0.3.0，含技能 / 分支 / Boss / 特效 / 音效）。
+两个平台均已使用 Godot 4.7.1 导出模板构建，可直接运行。最近一次重新导出为 2026-08-06（v0.4.0，含 UI 改版：主菜单 / 关卡选择 / 剧情日志 / 结算面板氛围重做）。
