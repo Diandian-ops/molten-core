@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/enemy.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://assets/kenney_td/tiles/towerDefense_tile247.png" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_phase_sovereign_1.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_phase_sovereign_2.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = "boss_sovereign"
+display_name = "熔心君主"
+max_health = 2000.0
+move_speed = 35.0
+armor = 10.0
+currency_reward = 300
+damage_to_core = 25
+crit_resistance = 0.8
+icon = ExtResource("3")
+scale = 2.0
+tint = Color(1, 0.55, 0.1, 1)
+is_boss = true
+boss_phases = Array[BossPhase]([ExtResource("4"), ExtResource("5")])
+scene = ExtResource("2")

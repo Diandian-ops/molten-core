@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=21 format=3]
+[gd_resource type="Resource" script_class="LevelData" load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2"]
@@ -7,21 +7,21 @@
 [ext_resource type="Resource" path="res://resources/enemies/enemy_shellguard.tres" id="5"]
 [ext_resource type="Resource" path="res://resources/enemies/enemy_rift_herald.tres" id="6"]
 [ext_resource type="Resource" path="res://resources/enemies/enemy_ember_wisp.tres" id="7"]
-[ext_resource type="Resource" path="res://resources/enemies/boss_shadow_walker.tres" id="8"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_sovereign.tres" id="8"]
 
 [sub_resource type="Resource" id="Entry_1a"]
 script = ExtResource("3")
 enemy_data = ExtResource("4")
 spawn_point_index = 0
-count = 8
-interval = 0.4
+count = 10
+interval = 0.35
 start_delay = 0.0
 
 [sub_resource type="Resource" id="Entry_1b"]
 script = ExtResource("3")
 enemy_data = ExtResource("5")
 spawn_point_index = 1
-count = 3
+count = 4
 interval = 0.9
 start_delay = 0.5
 
@@ -34,7 +34,7 @@ delay_after = 2.5
 script = ExtResource("3")
 enemy_data = ExtResource("6")
 spawn_point_index = 2
-count = 5
+count = 6
 interval = 0.8
 start_delay = 0.0
 
@@ -42,8 +42,8 @@ start_delay = 0.0
 script = ExtResource("3")
 enemy_data = ExtResource("7")
 spawn_point_index = 0
-count = 10
-interval = 0.25
+count = 12
+interval = 0.22
 start_delay = 0.5
 
 [sub_resource type="Resource" id="Wave_2"]
@@ -55,7 +55,7 @@ delay_after = 3.0
 script = ExtResource("3")
 enemy_data = ExtResource("5")
 spawn_point_index = 1
-count = 5
+count = 6
 interval = 0.6
 start_delay = 0.0
 
@@ -63,7 +63,7 @@ start_delay = 0.0
 script = ExtResource("3")
 enemy_data = ExtResource("7")
 spawn_point_index = 2
-count = 12
+count = 14
 interval = 0.2
 start_delay = 0.5
 
@@ -71,7 +71,7 @@ start_delay = 0.5
 script = ExtResource("3")
 enemy_data = ExtResource("6")
 spawn_point_index = 0
-count = 4
+count = 5
 interval = 0.7
 start_delay = 0.8
 
@@ -82,27 +82,56 @@ delay_after = 4.0
 
 [sub_resource type="Resource" id="Entry_4a"]
 script = ExtResource("3")
+enemy_data = ExtResource("4")
+spawn_point_index = 0
+count = 12
+interval = 0.3
+start_delay = 0.0
+
+[sub_resource type="Resource" id="Entry_4b"]
+script = ExtResource("3")
+enemy_data = ExtResource("5")
+spawn_point_index = 1
+count = 6
+interval = 0.6
+start_delay = 0.5
+
+[sub_resource type="Resource" id="Entry_4c"]
+script = ExtResource("3")
+enemy_data = ExtResource("7")
+spawn_point_index = 2
+count = 16
+interval = 0.18
+start_delay = 1.0
+
+[sub_resource type="Resource" id="Wave_4"]
+script = ExtResource("2")
+entries = [SubResource("Entry_4a"), SubResource("Entry_4b"), SubResource("Entry_4c")]
+delay_after = 4.0
+
+[sub_resource type="Resource" id="Entry_5a"]
+script = ExtResource("3")
 enemy_data = ExtResource("8")
 spawn_point_index = 0
 count = 1
 interval = 0.0
 start_delay = 2.0
 
-[sub_resource type="Resource" id="Wave_4"]
+[sub_resource type="Resource" id="Wave_5"]
 script = ExtResource("2")
-entries = [SubResource("Entry_4a")]
+entries = [SubResource("Entry_5a")]
 delay_after = 0.0
 
 [resource]
 script = ExtResource("1")
-level_id = "level_04"
-display_name = "第三章·熔火之心"
-next_level_id = "level_05"
-starting_currency = 180
-core_max_energy = 30
+level_id = "level_05"
+display_name = "终章·熔心王座"
+next_level_id = ""
+starting_currency = 220
+core_max_energy = 32
 spawn_points = [Vector2(120, 120), Vector2(1160, 600), Vector2(1160, 120)]
 paths = [PackedVector2Array(120, 120, 120, 260, 360, 260, 360, 160, 640, 160, 640, 360), PackedVector2Array(1160, 600, 1160, 460, 920, 460, 920, 560, 640, 560, 640, 360), PackedVector2Array(1160, 120, 920, 120, 920, 260, 640, 260, 640, 360)]
 core_position = Vector2(640, 360)
-waves = [SubResource("Wave_1"), SubResource("Wave_2"), SubResource("Wave_3"), SubResource("Wave_4")]
+waves = [SubResource("Wave_1"), SubResource("Wave_2"), SubResource("Wave_3"), SubResource("Wave_4"), SubResource("Wave_5")]
 star_2_energy_ratio = 0.5
 star_3_energy_ratio = 0.8

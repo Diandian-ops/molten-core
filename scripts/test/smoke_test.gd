@@ -29,6 +29,10 @@ func _ready() -> void:
 
 	# 2) 遍历所有建造槽放塔，循环使用 3 种塔，确保路径附近有火力覆盖
 	GameManager.add_currency(99999)
+	# 熔核在冒烟期间设为无敌（直接重置 Core 节点本身血量），避免受击归零触发关卡结束
+	# （关卡结束会 paused 树，卡住退出计时器，导致无法打印 SMOKE_DONE）。
+	if level.core and level.core.has_method("setup"):
+		level.core.setup(999999)
 	var slots: Array = []
 	if level.has_node("BuildSlots"):
 		for c in level.get_node("BuildSlots").get_children():
@@ -63,6 +67,13 @@ func _ready() -> void:
 		boss_entry.spawn_point_index = 0
 		sm.force_spawn(boss_entry)
 
+		# 终局 Boss 熔心君主：覆盖新 Boss 实例化
+		var sov_entry := WaveEntry.new()
+		sov_entry.enemy_data = load("res://resources/enemies/boss_sovereign.tres")
+		sov_entry.count = 1
+		sov_entry.spawn_point_index = 0
+		sm.force_spawn(sov_entry)
+
 	# 4) 直接触发一次塔开火→弹道→命中链路；并直接触发 Boss 阶段刷怪逻辑
 	await get_tree().process_frame
 	var enemies := get_tree().get_nodes_in_group("enemies")
@@ -77,6 +88,11 @@ func _ready() -> void:
 		var boss_data = load("res://resources/enemies/boss_lava_golem.tres")
 		if boss_data != null and boss_data.boss_phases.size() > 0:
 			level._on_boss_phase_passed(boss_data.boss_phases[0])
+
+		# 终局 Boss 阶段二：召唤余烬飞妖（验证 ember_wisp 已注册可解析）
+		var sov_data = load("res://resources/enemies/boss_sovereign.tres")
+		if sov_data != null and sov_data.boss_phases.size() > 1:
+			level._on_boss_phase_passed(sov_data.boss_phases[1])
 
 	print("SMOKE_TEST_OK: level=%s towers_placed=%d enemies_group=%d" % [
 		level.name, placed, get_tree().get_nodes_in_group("enemies").size()])
@@ -110,6 +126,7 @@ func _validate_resources() -> void:
 		"res://levels/level_02.tres",
 		"res://levels/level_03.tres",
 		"res://levels/level_04.tres",
+		"res://levels/level_05.tres",
 	]
 	for p in level_paths:
 		var ld = load(p)
@@ -125,10 +142,27 @@ func _validate_resources() -> void:
 		"res://resources/enemies/enemy_ember_wisp.tres",
 		"res://resources/towers/tower_siege.tres",
 		"res://scenes/level_select.tscn",
+		"res://resources/enemies/boss_sovereign.tres",
 	]
 	for p in extra:
 		if load(p) == null:
 			push_error("SMOKE_TEST: 资源加载失败: %s" % p)
 			get_tree().quit(1)
 			return
+
+	# 剧情日志：扫描 resources/story 全部 .tres，确认解析为 StoryLog（覆盖新增/扩写条目）
+	var sdir := DirAccess.open("res://resources/story/")
+	if sdir != null:
+		sdir.list_dir_begin()
+		var sf := sdir.get_next()
+		while sf != "":
+			if sf.ends_with(".tres"):
+				var sl = load("res://resources/story/" + sf)
+				if sl == null or not (sl is StoryLog):
+					push_error("SMOKE_TEST: 剧情资源加载失败或类型错误: %s" % sf)
+					get_tree().quit(1)
+					return
+			sf = sdir.get_next()
+		sdir.list_dir_end()
+
 	print("SMOKE_RESOURCES_OK: levels=%d extra=%d" % [level_paths.size(), extra.size()])

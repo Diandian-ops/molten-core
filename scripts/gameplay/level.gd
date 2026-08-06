@@ -197,7 +197,7 @@ func _clear_boss_phase_spawner(enemy: Enemy) -> void:
 func _find_enemy_data_by_id(id: String) -> EnemyData:
 	# 简单查找:遍历 resources/enemies
 	if id == "": return null
-	for path in ["res://resources/enemies/enemy_slave.tres", "res://resources/enemies/enemy_shellguard.tres", "res://resources/enemies/enemy_rift_herald.tres"]:
+	for path in ["res://resources/enemies/enemy_slave.tres", "res://resources/enemies/enemy_shellguard.tres", "res://resources/enemies/enemy_rift_herald.tres", "res://resources/enemies/enemy_ember_wisp.tres"]:
 		var d = load(path)
 		if d and d is EnemyData and d.id == id:
 			return d

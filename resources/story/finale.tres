@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StoryLog" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "finale"
+title = "熔心王座"
+chapter = "终章"
+body = "裂痕的尽头，是一座由冷却熔岩铸成的王座，端坐着熔心君主——所有裂痕的主宰。
+它本是熔核的守护之冠，却在孤独的千年间被黑暗浸透，转而想吞噬熔核、独霸这方火土。
+『守炉人，』它的声音像岩浆翻涌，『你守护的光，终将归于我。』
+你摇了摇头，晶簇在掌心燃起最后的焰——这一战，不为胜负，只为不让世界再次坠入永夜。
+王座崩塌的那一刻，所有的裂痕，都安静了。"
+unlock_level_id = "level_05"

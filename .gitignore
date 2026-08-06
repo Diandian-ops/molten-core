@@ -57,6 +57,10 @@ node_modules/
 test_*.gd
 debug_*.gd
 
+# ── 无头冒烟 / 启动校验临时日志 ──
+_smoke_log.txt
+_boot_log*.txt
+
 # ── 玩家存档 (运行时产物,不进版本控制) ──
 # 注意: GameManager 用 user://, 默认在 ~/.local/share/godot/app_userdata/.../
 # 不在项目目录里,所以不需特别处理

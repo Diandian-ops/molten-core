@@ -25,8 +25,12 @@ level_entries = [{
 "path": "res://levels/level_03.tres"
 }, {
 "id": "level_04",
-"name": "终章·熔火之心",
+"name": "第三章·熔火之心",
 "path": "res://levels/level_04.tres"
+}, {
+"id": "level_05",
+"name": "终章·熔心王座",
+"path": "res://levels/level_05.tres"
 }]
 
 [node name="EmberBackground" type="Control" parent="."]

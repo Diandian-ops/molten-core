@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="StoryLog" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1_wbpiy"]
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1"]
 
 [resource]
-script = ExtResource("1_wbpiy")
+script = ExtResource("1")
 id = "epilogue"
 title = "锻炉重燃"
 chapter = "尾声"
-body = "深渊领者倒下，裂痕缓缓愈合。
-熔核重新归于平稳的灼热，光，再一次覆盖了这片土地。
-你望向远方尚未熄灭的余烬——守炉人的故事，还未结束。"
-unlock_level_id = "level_03"
+body = "熔心君主倒在王座之下，金红的光焰从它破碎的冠冕里流回熔核。
+最后一道裂痕缓缓愈合，像伤疤终于结了痂；焦土上，第一簇嫩绿从灰里探出头。
+熔核重新归于平稳的搏动，光，温柔地覆盖了这片饱经战火的土地。
+守炉人卸下晶簇，听见风中传来久违的宁静——这一战，终于赢了。
+但你知道，只要熔核仍亮着，守炉人的故事就不会真正结束。下一次裂痕张开时，你还会握紧晶簇。"
+unlock_level_id = "level_05"

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StoryLog" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ch3"
+title = "熔火之心"
+chapter = "第三章"
+body = "穿过锻炉的废墟，你抵达了熔核最内里的心室——熔火之心。
+这里的空气都在燃烧，每一口呼吸都灼烫，岩壁上的符文记录着守炉人千年的誓约。
+熔核就在眼前，比想象中更安静，也更庞大，像一颗悬浮的太阳。
+可你脚下的地面仍在震颤：裂痕没有尽头，最深处，还有什么在等待。
+你握紧晶簇，走向那片吞没一切光亮的黑暗——终章，就在眼前。"
+unlock_level_id = "level_04"

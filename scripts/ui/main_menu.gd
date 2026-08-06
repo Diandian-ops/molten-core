@@ -8,6 +8,7 @@ const LEVEL_PATHS := {
 	"level_02": "res://levels/level_02.tres",
 	"level_03": "res://levels/level_03.tres",
 	"level_04": "res://levels/level_04.tres",
+	"level_05": "res://levels/level_05.tres",
 }
 
 @onready var title_label: Label = $CenterContainer/VBoxContainer/TitleLabel

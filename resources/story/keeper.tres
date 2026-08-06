@@ -1,12 +1,14 @@
 [gd_resource type="Resource" script_class="StoryLog" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1_ib5uv"]
+[ext_resource type="Script" path="res://scripts/data/story_log.gd" id="1"]
 
 [resource]
-script = ExtResource("1_ib5uv")
+script = ExtResource("1")
 id = "keeper"
 title = "守炉人"
 chapter = "人物"
-body = "你是这一代的守炉人。
-不记得自己从何而来，只记得胸口有与熔核同频的灼热。
-当裂痕涌出第一个敌人时，你握紧了晶簇——这是你与熔核之间唯一的契约。"
+body = "你是这一代的守炉人，名字早已被炉火吞没。
+你不记得自己从何而来，只记得胸口有与熔核同频的灼热，每一次搏动都牵动你的呼吸。
+当裂痕涌出第一个敌人时，你握紧了晶簇——这是你与熔核之间唯一的契约。
+晶簇会回应你的意志：凝结火焰、引动雷光、折射寒霜、轰裂大地。
+你不是战士，却是熔核最后一道，也是最重要的一道防线。"
