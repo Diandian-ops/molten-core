@@ -19,7 +19,7 @@ var current_level_path: String = ""
 ## key: level_id (String) -> value: 已获得的最高星级 (int, 0~3)
 var level_stars: Dictionary = {}
 ## 已解锁的关卡 id 列表，序章关卡默认解锁。
-var unlocked_levels: Array = ["level_01"]
+var unlocked_levels: Array[String] = ["level_01"]
 
 ## 音频设置：线性音量 0.0~1.0，key 见 BUS_MAP。
 var settings: Dictionary = {"master": 1.0, "sfx": 1.0, "music": 1.0}
@@ -112,6 +112,7 @@ func _apply_window_mode() -> void:
 
 func save_progress() -> void:
 	var data := {
+		"version": 1,
 		"level_stars": level_stars,
 		"unlocked_levels": unlocked_levels,
 		"settings": settings,
@@ -128,21 +129,37 @@ func load_progress() -> void:
 		return
 	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if not file:
+		push_warning("GameManager: 无法打开存档文件，使用默认进度。")
 		return
 	var text := file.get_as_text()
 	file.close()
 	var parsed = JSON.parse_string(text)
 	if typeof(parsed) != TYPE_DICTIONARY:
+		push_warning("GameManager: 存档不是合法 JSON 对象，已忽略并使用默认进度。")
 		return
-	if parsed.has("level_stars"):
-		level_stars = parsed["level_stars"]
-	if parsed.has("unlocked_levels"):
-		unlocked_levels = parsed["unlocked_levels"]
+
+	# 关卡星级：逐键校验为 int(0~3)，忽略非法类型
+	if parsed.has("level_stars") and typeof(parsed["level_stars"]) == TYPE_DICTIONARY:
+		var raw: Dictionary = parsed["level_stars"]
+		for key in raw.keys():
+			if typeof(raw[key]) == TYPE_INT or typeof(raw[key]) == TYPE_FLOAT:
+				level_stars[key] = clampi(int(raw[key]), 0, 3)
+
+	# 已解锁关卡：只保留 String 元素，并确保序章始终存在
+	if parsed.has("unlocked_levels") and typeof(parsed["unlocked_levels"]) == TYPE_ARRAY:
+		var raw_arr: Array = parsed["unlocked_levels"]
+		unlocked_levels = ["level_01"]
+		for v in raw_arr:
+			if typeof(v) == TYPE_STRING and v != "" and not unlocked_levels.has(v):
+				unlocked_levels.append(v)
+
+	# 音量设置：float 0~1
 	if parsed.has("settings") and typeof(parsed["settings"]) == TYPE_DICTIONARY:
 		var s: Dictionary = parsed["settings"]
 		for key in BUS_MAP.keys():
 			if s.has(key) and typeof(s[key]) == TYPE_FLOAT:
-				settings[key] = s[key]
+				settings[key] = clampf(s[key], 0.0, 1.0)
+
 	if parsed.has("reduce_motion") and typeof(parsed["reduce_motion"]) == TYPE_BOOL:
 		reduce_motion = parsed["reduce_motion"]
 	if parsed.has("fullscreen") and typeof(parsed["fullscreen"]) == TYPE_BOOL:
