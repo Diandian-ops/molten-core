@@ -1,0 +1,68 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/data/wave_entry.gd" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/enemy_slave.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/enemies/enemy_shellguard.tres" id="5"]
+
+[sub_resource type="Resource" id="Entry_1"]
+script = ExtResource("3")
+enemy_data = ExtResource("4")
+spawn_point_index = 0
+count = 5
+interval = 0.6
+start_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_1"]
+script = ExtResource("2")
+entries = [SubResource("Entry_1")]
+delay_after = 3.0
+
+[sub_resource type="Resource" id="Entry_2"]
+script = ExtResource("3")
+enemy_data = ExtResource("4")
+spawn_point_index = 1
+count = 6
+interval = 0.5
+start_delay = 0.0
+
+[sub_resource type="Resource" id="Wave_2"]
+script = ExtResource("2")
+entries = [SubResource("Entry_2")]
+delay_after = 3.0
+
+[sub_resource type="Resource" id="Entry_3a"]
+script = ExtResource("3")
+enemy_data = ExtResource("4")
+spawn_point_index = 0
+count = 6
+interval = 0.5
+start_delay = 0.0
+
+[sub_resource type="Resource" id="Entry_3b"]
+script = ExtResource("3")
+enemy_data = ExtResource("5")
+spawn_point_index = 1
+count = 2
+interval = 1.0
+start_delay = 1.0
+
+[sub_resource type="Resource" id="Wave_3"]
+script = ExtResource("2")
+entries = [SubResource("Entry_3a"), SubResource("Entry_3b")]
+delay_after = 0.0
+
+[resource]
+script = ExtResource("1")
+level_id = "level_01"
+display_name = "序章·熔炉苏醒"
+next_level_id = "level_02"
+starting_currency = 120
+core_max_energy = 20
+spawn_points = [Vector2(120, 120), Vector2(1160, 600)]
+paths = [PackedVector2Array(120, 120, 120, 260, 360, 260, 360, 160, 640, 160, 640, 360), PackedVector2Array(1160, 600, 1160, 460, 920, 460, 920, 560, 640, 560, 640, 360)]
+core_position = Vector2(640, 360)
+waves = [SubResource("Wave_1"), SubResource("Wave_2"), SubResource("Wave_3")]
+star_2_energy_ratio = 0.5
+star_3_energy_ratio = 0.8

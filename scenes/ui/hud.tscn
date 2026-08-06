@@ -1,0 +1,157 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
+[ext_resource type="Theme" path="res://resources/ui_theme.tres" id="2"]
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme = ExtResource("2")
+script = ExtResource("1")
+
+[node name="TopRightPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -720.0
+offset_top = 16.0
+offset_right = -20.0
+offset_bottom = 62.0
+
+[node name="Margin" type="MarginContainer" parent="TopRightPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 6
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TopRightPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="CurrencyLabel" type="Label" parent="TopRightPanel/Margin/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = "💎 晶币: 120"
+
+[node name="VSeparator1" type="VSeparator" parent="TopRightPanel/Margin/HBoxContainer"]
+layout_mode = 2
+
+[node name="WaveLabel" type="Label" parent="TopRightPanel/Margin/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "🌊 波次 0 / 0"
+
+[node name="VSeparator2" type="VSeparator" parent="TopRightPanel/Margin/HBoxContainer"]
+layout_mode = 2
+
+[node name="EnergyContainer" type="HBoxContainer" parent="TopRightPanel/Margin/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EnergyTitle" type="Label" parent="TopRightPanel/Margin/HBoxContainer/EnergyContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.55, 0.2, 1)
+theme_override_font_sizes/font_size = 15
+text = "🛡️ 熔核生命:"
+
+[node name="EnergyBar" type="ProgressBar" parent="TopRightPanel/Margin/HBoxContainer/EnergyContainer"]
+custom_minimum_size = Vector2(170, 22)
+layout_mode = 2
+size_flags_vertical = 4
+show_percentage = false
+
+[node name="EnergyLabel" type="Label" parent="TopRightPanel/Margin/HBoxContainer/EnergyContainer/EnergyBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "20 / 20 (100%)"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpeedButton" type="Button" parent="TopRightPanel/Margin/HBoxContainer"]
+custom_minimum_size = Vector2(92, 30)
+layout_mode = 2
+text = "⏩ 1x 速度"
+
+[node name="BuildMenu" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 260.0
+offset_bottom = 280.0
+
+[node name="Margin" type="MarginContainer" parent="BuildMenu"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Layout" type="VBoxContainer" parent="BuildMenu/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="BuildMenu/Margin/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.2, 1)
+theme_override_font_sizes/font_size = 15
+text = "🛠️ 选择构造守卫塔"
+horizontal_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="BuildMenu/Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="InspectorMenu" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 240.0
+offset_bottom = 200.0
+
+[node name="Margin" type="MarginContainer" parent="InspectorMenu"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InspectorMenu/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="InspectorMenu/Margin/VBoxContainer"]
+layout_mode = 2
+
+[node name="TowerNameLabel" type="Label" parent="InspectorMenu/Margin/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.7, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = "熔核塔 (Lv.1)"
+
+[node name="StatsLabel" type="Label" parent="InspectorMenu/Margin/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "攻击力: 10
+射程: 150
+攻速: 1.0s/发"
+
+[node name="UpgradeButton" type="Button" parent="InspectorMenu/Margin/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "⬆️ 升级 (💎 40)"
+
+[node name="SellButton" type="Button" parent="InspectorMenu/Margin/VBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+text = "💰 出售 (+💎 35)"

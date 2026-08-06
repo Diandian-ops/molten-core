@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/enemy_rift_herald.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_rift_herald"
+display_name = "裂痕使者"
+max_health = 35.0
+move_speed = 130.0
+armor = 0.0
+currency_reward = 15
+damage_to_core = 4
+scene = ExtResource("2")

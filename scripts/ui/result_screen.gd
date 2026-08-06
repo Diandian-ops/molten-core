@@ -1,0 +1,59 @@
+extends Control
+## 结算面板：显示胜利/失败、获得星级，提供重试/下一关/返回选择的按钮。
+class_name ResultScreen
+
+@onready var title_label: Label = $Panel/Margin/VBoxContainer/TitleLabel
+@onready var stars_label: Label = $Panel/Margin/VBoxContainer/StarsLabel
+@onready var next_button: Button = $Panel/Margin/VBoxContainer/HBoxContainer/NextButton
+@onready var retry_button: Button = $Panel/Margin/VBoxContainer/HBoxContainer/RetryButton
+@onready var level_select_button: Button = $Panel/Margin/VBoxContainer/HBoxContainer/LevelSelectButton
+
+var _level_id: String = ""
+var _next_level_id: String = ""
+
+func _ready() -> void:
+	var result: Dictionary = SceneRouter.pending_result
+	var victory: bool = result.get("victory", false)
+	var stars: int = result.get("stars", 0)
+	_level_id = result.get("level_id", "")
+	_next_level_id = result.get("next_level_id", "")
+
+	if title_label:
+		title_label.text = "熔核守住了！" if victory else "熔核已熄灭……"
+	if stars_label:
+		stars_label.text = ("★".repeat(stars) + "☆".repeat(3 - stars)) if victory else ""
+	if next_button:
+		next_button.visible = victory and _next_level_id != ""
+
+	# BGM: 1.5s 后根据胜负播放
+	var timer := get_tree().create_timer(1.5)
+	timer.timeout.connect(func ():
+		if is_instance_valid(self):
+			AudioManager.play_music("win" if victory else "lose", 0.5)
+	)
+	# 短 SFX 反馈 (核心摧毁/胜利短促音)
+	if victory:
+		AudioManager.play_sfx("core_damaged", -6.0)
+	else:
+		AudioManager.play_sfx("core_destroyed")
+
+	# 所有按钮 click 音
+	for btn in [next_button, retry_button, level_select_button]:
+		if btn and not btn.pressed.is_connected(_play_click):
+			btn.pressed.connect(_play_click.bind(victory))
+
+func _play_click(victory: bool) -> void:
+	AudioManager.play_sfx("ui_click" if victory else "ui_click_2")
+
+func _on_retry_button_pressed() -> void:
+	if _level_id != "":
+		SceneRouter.go_to_level("res://levels/%s.tres" % _level_id)
+	else:
+		SceneRouter.go_to_level_select()
+
+func _on_next_button_pressed() -> void:
+	if _next_level_id != "":
+		SceneRouter.go_to_level("res://levels/%s.tres" % _next_level_id)
+
+func _on_level_select_button_pressed() -> void:
+	SceneRouter.go_to_level_select()

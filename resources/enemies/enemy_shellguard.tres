@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/enemy_shellguard.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_shellguard"
+display_name = "熔壳兵"
+max_health = 60.0
+move_speed = 45.0
+armor = 4.0
+currency_reward = 12
+damage_to_core = 2
+scene = ExtResource("2")

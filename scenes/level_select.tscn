@@ -1,0 +1,73 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/level_select.gd" id="1"]
+[ext_resource type="Theme" path="res://resources/ui_theme.tres" id="2"]
+
+[node name="LevelSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("2")
+script = ExtResource("1")
+level_entries = [{
+"id": "level_01",
+"name": "序章·熔炉苏醒",
+"path": "res://levels/level_01.tres"
+}, {
+"id": "level_02",
+"name": "第一章·地脉裂痕",
+"path": "res://levels/level_02.tres"
+}, {
+"id": "level_03",
+"name": "第二章·锻炉遗迹",
+"path": "res://levels/level_03.tres"
+}]
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.06, 0.04, 0.08, 1)
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 40.0
+offset_bottom = 90.0
+theme_override_colors/font_color = Color(1, 0.7, 0.2, 1)
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+text = "🗺️ 选 择 关 卡"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -140.0
+offset_right = 220.0
+offset_bottom = 160.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = -70.0
+offset_right = 150.0
+offset_bottom = -24.0
+text = "◀ 返回"
+
+[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

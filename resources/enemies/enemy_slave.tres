@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/enemy_slave.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_slave"
+display_name = "灼奴"
+max_health = 20.0
+move_speed = 90.0
+armor = 0.0
+currency_reward = 5
+damage_to_core = 1
+scene = ExtResource("2")
