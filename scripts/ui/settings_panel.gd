@@ -1,18 +1,31 @@
 extends Control
 ## 设置面板：主菜单弹出的音量设置，拖动实时生效并持久化到 GameManager 存档。
+## 显示为模态（半透明背景拦截背后主菜单的点击），并提供「重置为默认」。
 class_name SettingsPanel
 
 const BUSES := ["master", "sfx", "music"]
 const BUS_LABELS := {"master": "主音量", "sfx": "音效", "music": "音乐"}
+const DEFAULT_VOLUME := 1.0
+
+var _sliders: Dictionary = {}
+var _applying := false
 
 func _ready() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_ui()
 	hide()
 
 func _build_ui() -> void:
+	# 半透明背景，拦截背后主菜单的点击，实现模态效果
+	var backdrop := ColorRect.new()
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	backdrop.color = Color(0, 0, 0, 0.55)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(backdrop)
+
 	var panel := PanelContainer.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(360, 280)
+	panel.custom_minimum_size = Vector2(360, 320)
 	add_child(panel)
 
 	var vbox := VBoxContainer.new()
@@ -39,17 +52,32 @@ func _build_ui() -> void:
 		row.add_child(label)
 		row.add_child(slider)
 		vbox.add_child(row)
+		_sliders[bus] = slider
 
+	var btn_row := HBoxContainer.new()
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	var reset := Button.new()
+	reset.text = "重置为默认"
+	reset.pressed.connect(_on_reset_pressed)
 	var close := Button.new()
 	close.text = "关闭"
 	close.pressed.connect(_on_close_pressed)
-	vbox.add_child(close)
+	btn_row.add_child(reset)
+	btn_row.add_child(close)
+	vbox.add_child(btn_row)
 
 func _on_volume_changed(value: float, bus: String) -> void:
 	GameManager.set_volume(bus, value)
-	# 调音效时实时试听一下
-	if bus == "sfx":
+	if not _applying and bus == "sfx":
 		AudioManager.play_sfx("ui_click")
+
+func _on_reset_pressed() -> void:
+	_applying = true
+	for bus in BUSES:
+		GameManager.set_volume(bus, DEFAULT_VOLUME)
+		_sliders[bus].value = DEFAULT_VOLUME
+	_applying = false
+	AudioManager.play_sfx("ui_click_2")
 
 func _on_close_pressed() -> void:
 	AudioManager.play_sfx("ui_click_2")
@@ -60,3 +88,7 @@ func toggle() -> void:
 		hide()
 	else:
 		show()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("ui_cancel"):
+		hide()
