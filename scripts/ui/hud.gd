@@ -281,6 +281,8 @@ func _on_speed_button_pressed() -> void:
 	if _game_speed == 1.0:
 		_game_speed = 2.0
 	elif _game_speed == 2.0:
+		_game_speed = 3.0
+	else:
 		_game_speed = 1.0
 	Engine.time_scale = _game_speed
 	_update_speed_button_text()
