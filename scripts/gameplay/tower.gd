@@ -193,6 +193,12 @@ func _fire_at(enemy: Enemy) -> void:
 	proj.setup(enemy, 550.0, get_current_damage(), data.splash_radius, data.slow_factor, data.slow_duration, proj_color)
 	proj.is_homing = true
 
+	# 枪口闪光：炮口位置亮闪 + 火花，强化开火手感
+	if get_tree().current_scene:
+		var muzzle := global_position + Vector2(34.0, 0.0).rotated(rotation)
+		FlashBurst.spawn(get_tree().current_scene, muzzle, Color(1.0, 0.92, 0.55), 24.0, 0.12, true)
+		ParticleBurst.spawn(get_tree().current_scene, muzzle, proj_color, 5, 130.0, 0.25, 3.0)
+
 	AudioManager.play_sfx("tower_shoot", 0.0, 0.92 + randf() * 0.16)
 
 func can_use_skill() -> bool:

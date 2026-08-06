@@ -5,6 +5,7 @@ class_name Enemy
 
 const FloatingText = preload("res://scripts/effects/floating_text.gd")
 const ParticleBurst = preload("res://scripts/effects/particle_burst.gd")
+const FlashBurst = preload("res://scripts/effects/flash_burst.gd")
 
 signal died(enemy: Enemy)
 
@@ -128,6 +129,11 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 	# 受击反馈
 	sprite.modulate = Color(2.5, 0.4, 0.4)
 	_hit_flash_t = 0.10
+	_hit_punch()
+
+	# 受击火花
+	if get_tree().current_scene:
+		ParticleBurst.spawn(get_tree().current_scene, global_position, Color(1.0, 0.6, 0.3), 4, 90.0, 0.3, 3.0)
 
 	# 飘字 (伤害数字)
 	if get_tree().current_scene and current_health > 0.0:
@@ -170,15 +176,24 @@ func _die_and_reward() -> void:
 	# 飘钱
 	if get_tree().current_scene:
 		FloatingText.spawn(get_tree().current_scene, global_position + Vector2(0,-10), "+%d" % data.currency_reward, Color(1.0, 0.85, 0.2), 40.0, 0.8)
-		# 死球粒子
+		# 死球粒子 + 爆闪环
 		var col := Color(1.0, 0.3, 0.1) if not is_boss() else Color(1.0, 0.6, 0.0)
 		ParticleBurst.spawn(get_tree().current_scene, global_position, col, 6 if not is_boss() else 20, 120.0, 0.5, 4.0)
+		FlashBurst.spawn(get_tree().current_scene, global_position, col, 40.0 if not is_boss() else 90.0, 0.35, true)
 	died.emit(self)
 	queue_free()
 
 func _spawn_death_effects() -> void:
 	if get_tree().current_scene:
 		ParticleBurst.spawn(get_tree().current_scene, global_position, Color(0.8, 0.2, 0.2), 8, 100.0, 0.4, 3.0)
+
+## 受击挤压反馈：对视觉节点做一次快速 squash→还原，强化打击感。
+func _hit_punch() -> void:
+	if not is_instance_valid(sprite):
+		return
+	var tw := create_tween()
+	tw.tween_property(sprite, "scale", Vector2(1.3, 0.75), 0.06).set_ease(Tween.EASE_OUT)
+	tw.tween_property(sprite, "scale", Vector2(1.0, 1.0), 0.10).set_ease(Tween.EASE_OUT)
 
 func _reach_core() -> void:
 	if _absorbed_by_core:

@@ -5,6 +5,7 @@ class_name Core
 
 const ParticleBurst = preload("res://scripts/effects/particle_burst.gd")
 const FlashBurst = preload("res://scripts/effects/flash_burst.gd")
+const FloatingText = preload("res://scripts/effects/floating_text.gd")
 
 signal energy_depleted
 signal core_damaged(amount: int, current: int)
@@ -68,12 +69,13 @@ func take_damage(amount: int) -> void:
 	core_damaged.emit(amount, _hp)
 	AudioManager.play_sfx("core_damaged")
 
-	# 受击粒子
+	# 受击粒子 + 伤害飘字
 	if get_tree().current_scene:
 		ParticleBurst.spawn(get_tree().current_scene, global_position, Color(1.0, 0.2, 0.2), 10, 150.0, 0.5, 4.0)
+		FloatingText.spawn(get_tree().current_scene, global_position + Vector2(0, -42), "-%d" % amount, Color(1.0, 0.35, 0.35), 52.0, 0.8)
 		var cam := get_viewport().get_camera_2d()
 		if cam and cam.has_method("add_trauma"):
-			cam.add_trauma(0.3)
+			cam.add_trauma(0.35)
 
 	if _hp <= 0:
 		_destroy_core()
