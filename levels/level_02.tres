@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="LevelData" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2"]
@@ -60,7 +60,12 @@ start_delay = 2.0
 
 [sub_resource type="Resource" id="Wave_3"]
 script = ExtResource("2")
-entries = [SubResource("Entry_3a"), SubResource("Entry_3b")]
+entries = [SubResource("Entry_3a")]
+delay_after = 4.0
+
+[sub_resource type="Resource" id="Wave_4"]
+script = ExtResource("2")
+entries = [SubResource("Entry_3b")]
 delay_after = 0.0
 
 [resource]
@@ -73,6 +78,6 @@ core_max_energy = 24
 spawn_points = [Vector2(120, 120), Vector2(1160, 600), Vector2(1160, 120)]
 paths = [PackedVector2Array(120, 120, 120, 260, 360, 260, 360, 160, 640, 160, 640, 360), PackedVector2Array(1160, 600, 1160, 460, 920, 460, 920, 560, 640, 560, 640, 360), PackedVector2Array(1160, 120, 920, 120, 920, 260, 640, 260, 640, 360)]
 core_position = Vector2(640, 360)
-waves = [SubResource("Wave_1"), SubResource("Wave_2"), SubResource("Wave_3")]
+waves = [SubResource("Wave_1"), SubResource("Wave_2"), SubResource("Wave_3"), SubResource("Wave_4")]
 star_2_energy_ratio = 0.5
 star_3_energy_ratio = 0.8

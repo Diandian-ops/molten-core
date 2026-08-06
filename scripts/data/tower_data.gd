@@ -19,8 +19,8 @@ class_name TowerData
 
 # === 升级 (线性 Lv1->max_level) ===
 @export var base_upgrade_cost: int = 40
-@export var damage_per_level: float = 5.0
-@export var range_per_level: float = 20.0
+@export var damage_per_level: float = 7.0
+@export var range_per_level: float = 24.0
 @export var max_level: int = 3
 
 # === 主动技能 (v0.3.0) ===
