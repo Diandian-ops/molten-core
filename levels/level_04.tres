@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=13 format=3]
+[gd_resource type="Resource" script_class="LevelData" load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2"]
@@ -6,13 +6,14 @@
 [ext_resource type="Resource" path="res://resources/enemies/enemy_slave.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/enemies/enemy_shellguard.tres" id="5"]
 [ext_resource type="Resource" path="res://resources/enemies/enemy_rift_herald.tres" id="6"]
-[ext_resource type="Resource" path="res://resources/enemies/boss_abyss_lord.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/enemies/enemy_ember_wisp.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_shadow_walker.tres" id="8"]
 
 [sub_resource type="Resource" id="Entry_1a"]
 script = ExtResource("3")
 enemy_data = ExtResource("4")
 spawn_point_index = 0
-count = 6
+count = 8
 interval = 0.4
 start_delay = 0.0
 
@@ -33,17 +34,17 @@ delay_after = 2.5
 script = ExtResource("3")
 enemy_data = ExtResource("6")
 spawn_point_index = 2
-count = 4
-interval = 1.0
+count = 5
+interval = 0.8
 start_delay = 0.0
 
 [sub_resource type="Resource" id="Entry_2b"]
 script = ExtResource("3")
-enemy_data = ExtResource("5")
+enemy_data = ExtResource("7")
 spawn_point_index = 0
-count = 4
-interval = 0.8
-start_delay = 1.0
+count = 10
+interval = 0.25
+start_delay = 0.5
 
 [sub_resource type="Resource" id="Wave_2"]
 script = ExtResource("2")
@@ -52,45 +53,53 @@ delay_after = 3.0
 
 [sub_resource type="Resource" id="Entry_3a"]
 script = ExtResource("3")
-enemy_data = ExtResource("6")
+enemy_data = ExtResource("5")
 spawn_point_index = 1
 count = 5
-interval = 0.7
+interval = 0.6
 start_delay = 0.0
 
 [sub_resource type="Resource" id="Entry_3b"]
 script = ExtResource("3")
-enemy_data = ExtResource("5")
+enemy_data = ExtResource("7")
 spawn_point_index = 2
-count = 5
-interval = 0.6
+count = 12
+interval = 0.2
 start_delay = 0.5
 
 [sub_resource type="Resource" id="Entry_3c"]
 script = ExtResource("3")
-enemy_data = ExtResource("7")
+enemy_data = ExtResource("6")
 spawn_point_index = 0
-count = 1
-interval = 0.0
-start_delay = 3.0
+count = 4
+interval = 0.7
+start_delay = 0.8
 
 [sub_resource type="Resource" id="Wave_3"]
 script = ExtResource("2")
-entries = [SubResource("Entry_3a"), SubResource("Entry_3b")]
+entries = [SubResource("Entry_3a"), SubResource("Entry_3b"), SubResource("Entry_3c")]
 delay_after = 4.0
+
+[sub_resource type="Resource" id="Entry_4a"]
+script = ExtResource("3")
+enemy_data = ExtResource("8")
+spawn_point_index = 0
+count = 1
+interval = 0.0
+start_delay = 2.0
 
 [sub_resource type="Resource" id="Wave_4"]
 script = ExtResource("2")
-entries = [SubResource("Entry_3c")]
+entries = [SubResource("Entry_4a")]
 delay_after = 0.0
 
 [resource]
 script = ExtResource("1")
-level_id = "level_03"
-display_name = "第二章·锻炉遗迹"
-next_level_id = "level_04"
-starting_currency = 160
-core_max_energy = 28
+level_id = "level_04"
+display_name = "终章·熔火之心"
+next_level_id = ""
+starting_currency = 180
+core_max_energy = 30
 spawn_points = [Vector2(120, 120), Vector2(1160, 600), Vector2(1160, 120)]
 paths = [PackedVector2Array(120, 120, 120, 260, 360, 260, 360, 160, 640, 160, 640, 360), PackedVector2Array(1160, 600, 1160, 460, 920, 460, 920, 560, 640, 560, 640, 360), PackedVector2Array(1160, 120, 920, 120, 920, 260, 640, 260, 640, 360)]
 core_position = Vector2(640, 360)

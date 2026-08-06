@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/tower.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://assets/kenney_td/tiles/tower_crystal_icon.png" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = "tower_siege"
+display_name = "熔核炮"
+description = "重型范围轰炸塔，溅射与减速兼备，专破成群敌人。"
+cost = 90
+damage = 35.0
+attack_range = 140.0
+attack_interval = 1.7
+splash_radius = 55.0
+slow_factor = 0.25
+slow_duration = 1.2
+base_upgrade_cost = 50
+damage_per_level = 10.0
+range_per_level = 15.0
+max_level = 2
+skill_name = "熔核轰炸"
+skill_description = "锥形大范围爆发，造成 120 伤害并减速"
+skill_cost = 70
+skill_cooldown = 18.0
+skill_radius = 220.0
+skill_cone_angle = 90.0
+skill_damage = 120
+skill_slow = 0.3
+skill_slow_duration = 2.0
+skill_stun = 0.0
+has_branch = false
+scene = ExtResource("2")
+icon = ExtResource("3")

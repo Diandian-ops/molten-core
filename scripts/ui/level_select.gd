@@ -88,5 +88,7 @@ func _boss_hint(level_id: String) -> String:
 			return "Boss：暗影行者 · 高速隐身"
 		"level_03":
 			return "Boss：深渊领者 · 半血狂暴"
+		"level_04":
+			return "Boss：暗影行者 · 高速狂暴"
 		_:
 			return ""

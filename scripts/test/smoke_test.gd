@@ -38,6 +38,7 @@ func _ready() -> void:
 		"res://resources/towers/tower_flame.tres",
 		"res://resources/towers/tower_shock.tres",
 		"res://resources/towers/tower_crystal.tres",
+		"res://resources/towers/tower_siege.tres",
 	]
 	var placed := 0
 	for i in range(slots.size()):
@@ -80,6 +81,9 @@ func _ready() -> void:
 	print("SMOKE_TEST_OK: level=%s towers_placed=%d enemies_group=%d" % [
 		level.name, placed, get_tree().get_nodes_in_group("enemies").size()])
 
+	# 4.5) 资源完整性校验：加载全部关卡 / 新敌人 / 新塔 / 关卡选择场景，确保 .tres/.tscn 解析与引用无误
+	_validate_resources()
+
 	# 5) 周期性打印状态（存活敌人 / 熔核能量 / 货币 / Boss 存活），作为游戏持续推进的硬证据
 	var status_timer := get_tree().create_timer(4.0)
 	status_timer.timeout.connect(func():
@@ -98,3 +102,33 @@ func _ready() -> void:
 		print("SMOKE_DONE")
 		get_tree().quit()
 	)
+
+## 资源完整性校验：遍历所有关卡与新内容资源，确认解析与引用无误（服务多关卡回归）。
+func _validate_resources() -> void:
+	var level_paths := [
+		"res://levels/level_01.tres",
+		"res://levels/level_02.tres",
+		"res://levels/level_03.tres",
+		"res://levels/level_04.tres",
+	]
+	for p in level_paths:
+		var ld = load(p)
+		if ld == null or not (ld is LevelData):
+			push_error("SMOKE_TEST: 关卡资源加载失败或类型错误: %s" % p)
+			get_tree().quit(1)
+			return
+		if ld.waves.is_empty() or ld.spawn_points.is_empty() or ld.paths.is_empty():
+			push_error("SMOKE_TEST: 关卡数据不完整(波次/裂痕/路线缺失): %s" % p)
+			get_tree().quit(1)
+			return
+	var extra := [
+		"res://resources/enemies/enemy_ember_wisp.tres",
+		"res://resources/towers/tower_siege.tres",
+		"res://scenes/level_select.tscn",
+	]
+	for p in extra:
+		if load(p) == null:
+			push_error("SMOKE_TEST: 资源加载失败: %s" % p)
+			get_tree().quit(1)
+			return
+	print("SMOKE_RESOURCES_OK: levels=%d extra=%d" % [level_paths.size(), extra.size()])
