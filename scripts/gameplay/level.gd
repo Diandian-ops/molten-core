@@ -23,6 +23,10 @@ var _anim_time: float = 0.0
 var _boss_phase_spawners: Dictionary = {}
 
 func _ready() -> void:
+	# 关卡级时间缩放复位：保证每关从 1x 开始（与全新 HUD 的显示一致），
+	# 也避免上一关残留的 2x/3x 污染本关。SceneRouter 已复位 paused，此处只管 time_scale。
+	Engine.time_scale = 1.0
+
 	if level_data == null:
 		var path: String = GameManager.current_level_path
 		if path != "":
@@ -238,3 +242,7 @@ func _end_level(victory: bool) -> void:
 		stars = level_data.calculate_stars(GameManager.core_energy)
 		GameManager.complete_level(level_data.level_id, stars, level_data.next_level_id)
 	SceneRouter.go_to_result(victory, stars, level_data)
+
+func _exit_tree() -> void:
+	# 关卡卸载时复位全局时间缩放，避免残留 2x/3x 加速后续场景（结算/菜单）。
+	Engine.time_scale = 1.0
