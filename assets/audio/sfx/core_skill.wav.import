@@ -1,0 +1,9 @@
+[remap]
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b016coreskil"
+path="res://.godot/imported/core_skill.wav-d78a79baa35600beb4bed47def8077d9.sample"
+
+[deps]
+source_file="res://assets/audio/sfx/core_skill.wav"
+dest_files=["res://.godot/imported/core_skill.wav-d78a79baa35600beb4bed47def8077d9.sample"]

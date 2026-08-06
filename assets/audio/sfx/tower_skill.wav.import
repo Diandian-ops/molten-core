@@ -1,0 +1,9 @@
+[remap]
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b015towerski"
+path="res://.godot/imported/tower_skill.wav-dba75348d9a63b75683d65122d31147c.sample"
+
+[deps]
+source_file="res://assets/audio/sfx/tower_skill.wav"
+dest_files=["res://.godot/imported/tower_skill.wav-dba75348d9a63b75683d65122d31147c.sample"]

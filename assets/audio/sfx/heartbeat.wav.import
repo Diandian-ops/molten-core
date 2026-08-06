@@ -1,0 +1,9 @@
+[remap]
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b012heartbea"
+path="res://.godot/imported/heartbeat.wav-b60dcb8d1ae85b9be8b214dd49678c3c.sample"
+
+[deps]
+source_file="res://assets/audio/sfx/heartbeat.wav"
+dest_files=["res://.godot/imported/heartbeat.wav-b60dcb8d1ae85b9be8b214dd49678c3c.sample"]

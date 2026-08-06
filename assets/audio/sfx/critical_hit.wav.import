@@ -1,0 +1,9 @@
+[remap]
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b013critical"
+path="res://.godot/imported/critical_hit.wav-7267ecede4c411fabc0fbcc62f3ff9a4.sample"
+
+[deps]
+source_file="res://assets/audio/sfx/critical_hit.wav"
+dest_files=["res://.godot/imported/critical_hit.wav-7267ecede4c411fabc0fbcc62f3ff9a4.sample"]

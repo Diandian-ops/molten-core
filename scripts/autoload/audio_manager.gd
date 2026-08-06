@@ -16,6 +16,15 @@ const SFX_PATHS := {
 	"wave_start":     preload("res://assets/audio/sfx/wave_start.wav"),
 	"win":            preload("res://assets/audio/sfx/win.wav"),
 	"lose":           preload("res://assets/audio/sfx/lose.wav"),
+	# v0.3.0
+	"heartbeat":      preload("res://assets/audio/sfx/heartbeat.wav"),
+	"critical_hit":   preload("res://assets/audio/sfx/critical_hit.wav"),
+	"boss_roar":      preload("res://assets/audio/sfx/boss_roar.wav"),
+	"tower_skill":    preload("res://assets/audio/sfx/tower_skill.wav"),
+	"core_skill":     preload("res://assets/audio/sfx/core_skill.wav"),
+	"branch_pick":    preload("res://assets/audio/sfx/branch_pick.wav"),
+	"whoosh":         preload("res://assets/audio/sfx/whoosh.wav"),
+	"boom":           preload("res://assets/audio/sfx/boom.wav"),
 }
 
 # 每个 id 一个 4 个 player 的池,允许同帧多次重叠

@@ -1,0 +1,9 @@
+[remap]
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b017branchpi"
+path="res://.godot/imported/branch_pick.wav-07f9cdde7866528ebadd8b7c2cba2207.sample"
+
+[deps]
+source_file="res://assets/audio/sfx/branch_pick.wav"
+dest_files=["res://.godot/imported/branch_pick.wav-07f9cdde7866528ebadd8b7c2cba2207.sample"]

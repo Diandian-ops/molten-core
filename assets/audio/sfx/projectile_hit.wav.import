@@ -2,7 +2,7 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://b101projecti"
+uid="uid://b001projecti"
 path="res://.godot/imported/projectile_hit.wav-64200e1f94e0d59ff0b8e0697c921cdc.sample"
 
 [deps]
