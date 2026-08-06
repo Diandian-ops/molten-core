@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/enemy.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://assets/kenney_td/tiles/towerDefense_tile247.png" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_phase_abyss_1.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_phase_abyss_2.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = "boss_abyss_lord"
+display_name = "深渊领者"
+max_health = 1200.0
+move_speed = 30.0
+armor = 8.0
+currency_reward = 150
+damage_to_core = 20
+crit_resistance = 0.7
+icon = ExtResource("3")
+scale = 1.8
+tint = Color(0.1, 0.1, 0.6, 1)
+is_boss = true
+boss_phases = Array[BossPhase]([ExtResource("4"), ExtResource("5")])
+scene = ExtResource("2")

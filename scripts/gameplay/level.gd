@@ -3,6 +3,7 @@ extends Node2D
 class_name Level
 
 const GROUND_TEXTURE = preload("res://assets/kenney_td/tiles/towerDefense_tile021.png")
+const BossPhase = preload("res://scripts/data/boss_phase.gd")
 
 @export var level_data: LevelData
 
@@ -12,12 +13,14 @@ const GROUND_TEXTURE = preload("res://assets/kenney_td/tiles/towerDefense_tile02
 @onready var build_slots_container: Node = $BuildSlots
 @onready var map_ground: Node2D = $MapGround
 @onready var path_overlay: Node2D = $PathOverlay
+@onready var effects_node: Node2D = $Effects
 
 var _current_wave_index: int = -1
 var _alive_enemies: int = 0
 var _all_waves_spawned: bool = false
 var _level_ended: bool = false
 var _anim_time: float = 0.0
+var _boss_phase_spawners: Dictionary = {}
 
 func _ready() -> void:
 	if level_data == null:
@@ -35,6 +38,7 @@ func _ready() -> void:
 
 	if core:
 		core.global_position = level_data.core_position
+		core.setup(level_data.core_max_energy)
 		core.add_to_group("core")
 		core.energy_depleted.connect(_on_core_depleted)
 
@@ -119,10 +123,74 @@ func _setup_build_slots() -> void:
 func _on_build_slot_selected(slot: BuildSlot) -> void:
 	if hud and hud.has_method("open_slot_menu"):
 		hud.open_slot_menu(slot)
+	# 玩家点击槽位后，如果该塔需要分支选择，弹出分支对话框
+	if slot and is_instance_valid(slot.current_tower):
+		var tw := slot.current_tower
+		if tw.is_branch_choice_pending():
+			_show_branch_dialog(tw)
+
+func _show_branch_dialog(tower: Tower) -> void:
+	if not hud or not hud.branch_dialog:
+		return
+	# 暂停游戏
+	get_tree().paused = true
+	hud.branch_dialog.show_for_tower(tower, tower.data.branch_a, tower.data.branch_b)
+	hud.branch_dialog.visible = true
+	# 选择后由 hud._on_branch_selected 处理，最后恢复
+	if not hud.branch_dialog.branch_selected.is_connected(_on_branch_dialog_closed):
+		hud.branch_dialog.branch_selected.connect(_on_branch_dialog_closed)
+
+func _on_branch_dialog_closed(_id: String) -> void:
+	if hud and hud.branch_dialog:
+		hud.branch_dialog.visible = false
+	get_tree().paused = false
 
 func _on_enemy_spawned(enemy: Enemy) -> void:
 	_alive_enemies += 1
 	enemy.died.connect(_on_enemy_died)
+	if enemy.is_boss() and enemy.data and not enemy.data.boss_phases.is_empty():
+		# 监听 boss 阶段
+		enemy.tree_exited.connect(_clear_boss_phase_spawner.bind(enemy))
+
+func _on_boss_phase_passed(phase: BossPhase) -> void:
+	# 阶段刷怪: 启动一个计时器周期性 spawn
+	var timer := Timer.new()
+	timer.wait_time = phase.spawn_interval
+	timer.autostart = true
+	timer.timeout.connect(func ():
+		if not is_instance_valid(self) or _level_ended:
+			timer.queue_free()
+			return
+		var enemy_data: EnemyData = _find_enemy_data_by_id(phase.spawn_enemy_id)
+		if enemy_data and spawn_manager:
+			# 使用第一个 spawn point
+			if level_data and level_data.spawn_points.size() > 0:
+				var entry := WaveEntry.new()
+				entry.enemy_data = enemy_data
+				entry.count = 1
+				entry.spawn_point_index = 0
+				# 直接调用 spawn_manager 内部? 避免访问私有,用 public spawn
+				if spawn_manager.has_method("force_spawn"):
+					spawn_manager.force_spawn(entry)
+	)
+	add_child(timer)
+	_boss_phase_spawners[phase] = timer
+
+func _clear_boss_phase_spawner(enemy: Enemy) -> void:
+	for p in _boss_phase_spawners.keys():
+		var t = _boss_phase_spawners[p]
+		if is_instance_valid(t):
+			t.queue_free()
+	_boss_phase_spawners.clear()
+
+func _find_enemy_data_by_id(id: String) -> EnemyData:
+	# 简单查找:遍历 resources/enemies
+	if id == "": return null
+	for path in ["res://resources/enemies/enemy_slave.tres", "res://resources/enemies/enemy_shellguard.tres", "res://resources/enemies/enemy_rift_herald.tres"]:
+		var d = load(path)
+		if d and d is EnemyData and d.id == id:
+			return d
+	return null
 
 func _on_enemy_died(_enemy: Enemy) -> void:
 	_alive_enemies -= 1

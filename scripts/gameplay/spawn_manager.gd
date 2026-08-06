@@ -49,6 +49,9 @@ func _run_entry(entry: WaveEntry) -> void:
 			await get_tree().create_timer(entry.interval).timeout
 	_active_entries -= 1
 
+func force_spawn(entry: WaveEntry) -> void:
+	_spawn_enemy(entry)
+
 func _spawn_enemy(entry: WaveEntry) -> void:
 	if entry.enemy_data == null or entry.enemy_data.scene == null:
 		return

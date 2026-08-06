@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/enemy.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://assets/kenney_td/tiles/towerDefense_tile245.png" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_phase_lava_golem.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = "boss_lava_golem"
+display_name = "熔岩巨像"
+max_health = 500.0
+move_speed = 25.0
+armor = 5.0
+currency_reward = 80
+damage_to_core = 10
+crit_resistance = 0.3
+icon = ExtResource("3")
+scale = 1.5
+tint = Color(1, 0.3, 0.1, 1)
+is_boss = true
+boss_phases = Array[BossPhase]([ExtResource("4")])
+scene = ExtResource("2")

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/enemy.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://assets/kenney_td/tiles/towerDefense_tile246.png" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_phase_shadow.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = "boss_shadow_walker"
+display_name = "暗影行者"
+max_health = 350.0
+move_speed = 55.0
+armor = 2.0
+currency_reward = 100
+damage_to_core = 6
+crit_resistance = 0.5
+icon = ExtResource("3")
+scale = 1.4
+tint = Color(0.4, 0.1, 0.5, 1)
+is_boss = true
+boss_phases = Array[BossPhase]([ExtResource("4")])
+scene = ExtResource("2")
