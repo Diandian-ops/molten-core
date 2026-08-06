@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://resources/enemies/enemy_slave.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/enemies/enemy_shellguard.tres" id="5"]
 [ext_resource type="Resource" path="res://resources/enemies/enemy_rift_herald.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_abyss_lord.tres" id="7"]
 
 [sub_resource type="Resource" id="Entry_1a"]
 script = ExtResource("3")
@@ -65,9 +66,17 @@ count = 5
 interval = 0.6
 start_delay = 0.5
 
+[sub_resource type="Resource" id="Entry_3c"]
+script = ExtResource("3")
+enemy_data = ExtResource("7")
+spawn_point_index = 0
+count = 1
+interval = 0.0
+start_delay = 3.0
+
 [sub_resource type="Resource" id="Wave_3"]
 script = ExtResource("2")
-entries = [SubResource("Entry_3a"), SubResource("Entry_3b")]
+entries = [SubResource("Entry_3a"), SubResource("Entry_3b"), SubResource("Entry_3c")]
 delay_after = 0.0
 
 [resource]
