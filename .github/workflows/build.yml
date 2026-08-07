@@ -42,12 +42,24 @@ jobs:
         # （空 custom_template 也能命中，无需在 export_presets.cfg 写绝对路径）。
         run: |
           curl -fL -o export_templates.tpz "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_export_templates.tpz"
-          TD="$HOME/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.official.a13da4feb"
+          # 注意：Godot 按完整版本名(点号)找模板目录 4.7.1.stable.official.a13da4feb，
+          # 不能用 GODOT_VERSION 的连字符版 4.7.1-stable，否则模板放错目录导致所有平台导出失败。
+          TD="$HOME/.local/share/godot/export_templates/4.7.1.stable.official.a13da4feb"
           mkdir -p "$TD"
           rm -rf tmpl_tmp && unzip -o -q export_templates.tpz -d tmpl_tmp
           cp -r tmpl_tmp/templates/. "$TD"/
           rm -rf tmpl_tmp
           echo "templates ready at $TD"; ls "$TD" | head
+
+      # ── Android 源模板（gradle 导出必需；CI 原缺失 → Android 导出失败）──
+      # Godot 4.7 发布资产命名为 Godot_v<ver>_android_source.perfetto.zip，
+      # 但 Godot 内部查找 android_source.zip（及 possibly .perfetto.zip），两份都放以覆盖。
+      - name: Download Android source template
+        run: |
+          curl -fL -o android_src.zip "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_android_source.perfetto.zip"
+          cp android_src.zip "$TD/android_source.zip"
+          cp android_src.zip "$TD/android_source.perfetto.zip"
+          echo "android source template placed:"; ls -la "$TD" | grep -i android
 
       # ── 冒烟测试：临时把 main_scene 指向测试场景，无头跑一遍，校验 SMOKE_TEST_OK ──
       - name: Run gameplay smoke test
