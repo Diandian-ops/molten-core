@@ -20,6 +20,7 @@ func _ready() -> void:
 	_level_id = result.get("level_id", "")
 	_next_level_id = result.get("next_level_id", "")
 	var reached_wave: int = result.get("reached_wave", 0)
+	var leaked: int = result.get("leaked", 0)
 
 	if title_label:
 		title_label.text = "熔核守住了！" if victory else "熔核已熄灭……"
@@ -34,9 +35,12 @@ func _ready() -> void:
 			hint_label.visible = true
 			hint_label.text = "📖 通关解锁新剧情，主菜单「剧情日志」可查看"
 		else:
-			# 失败闭环：玩家需要知道「我撑到了第几波」，否则挫败感无锚点。
-			hint_label.visible = reached_wave > 0
-			hint_label.text = "坚持到第 %d 波 · 熔心仍在，再战！" % reached_wave
+			# 失败闭环：玩家需要知道「撑到第几波 + 漏了几个」，否则挫败感无锚点。
+			hint_label.visible = reached_wave > 0 or leaked > 0
+			var hint := "坚持到第 %d 波 · 熔心仍在，再战！" % reached_wave
+			if leaked > 0:
+				hint += "\n💥 漏过 %d 个敌人突破熔核" % leaked
+			hint_label.text = hint
 
 	# BGM: 1.5s 后根据胜负播放
 	var timer := get_tree().create_timer(1.5)

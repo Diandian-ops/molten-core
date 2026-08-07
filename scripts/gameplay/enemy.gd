@@ -172,12 +172,19 @@ func _die_and_reward() -> void:
 	if _dead:
 		return
 	_dead = true
-	HitStop.trigger(0.05)  # 击杀顿帧：冻结瞬间的"顿"感，强化摧毁爽快
+	if is_boss():
+		# Boss 死亡重击：更长的冻结（砸下去的顿挫感），普通小怪只做轻顿帧。
+		HitStop.trigger(0.12)
+	else:
+		HitStop.trigger(0.05)  # 击杀顿帧：冻结瞬间的"顿"感，强化摧毁爽快
 	GameManager.add_currency(data.currency_reward)
 	AudioManager.play_sfx("enemy_kill", 0.0, 0.85 + randf() * 0.3)
-	# Boss 死亡额外叠一层爆炸轰鸣；普通小怪不播，避免杀怪音效过载。
+	# Boss 死亡额外叠一层爆炸轰鸣 + 屏震；普通小怪不播，避免杀怪音效过载。
 	if is_boss():
 		AudioManager.play_sfx("boom", -2.0, 0.9 + randf() * 0.2)
+		var cam := get_viewport().get_camera_2d()
+		if cam and cam.has_method("add_trauma"):
+			cam.add_trauma(0.6)  # Boss 死亡额外屏震，强化终结重量
 	# 飘钱
 	if get_tree().current_scene:
 		FloatingText.spawn(get_tree().current_scene, global_position + Vector2(0,-10), "+%d" % data.currency_reward, Color(1.0, 0.85, 0.2), 40.0, 0.8)

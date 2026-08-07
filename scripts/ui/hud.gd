@@ -46,6 +46,11 @@ var _next_wave_time: float = 0.0
 var _next_wave_active: bool = false
 var _wave_hint: Control
 var _wave_hint_label: Label
+var _wave_preview: String = ""  # 下一波敌人构成（出兵预览）
+
+# 波次清空庆祝横幅（运行时动态构建）
+var _wave_clear_label: Label
+var _wave_clear_tw: Tween
 
 # 安全区（刘海/手势条）内缩量，桌面端恒为 0，无副作用
 var _safe_left: float = 0.0
@@ -98,6 +103,7 @@ func _ready() -> void:
 
 	_setup_pause_ui()
 	_setup_wave_hint()
+	_setup_wave_clear()
 	_populate_build_menu()
 
 	# 移动端安全区适配：连接视口尺寸变化并立即应用一次
@@ -424,9 +430,11 @@ func _setup_wave_hint() -> void:
 	add_child(_wave_hint)
 
 ## 由 Level 转发 SpawnManager.between_wave_started：启动下一波倒计时显示。
-func show_next_wave_countdown(next_index: int, delay: float) -> void:
+## preview 为 Level 聚合的下一波敌人构成（出兵预览），空串则不显示。
+func show_next_wave_countdown(next_index: int, delay: float, preview: String = "") -> void:
 	_next_wave_index = next_index
 	_next_wave_time = max(delay, 0.0)
+	_wave_preview = preview
 	_next_wave_active = true
 	if _wave_hint:
 		_wave_hint.visible = true
@@ -435,12 +443,55 @@ func show_next_wave_countdown(next_index: int, delay: float) -> void:
 ## 新波次开始或关卡结束：清除倒计时提示。
 func clear_next_wave_countdown() -> void:
 	_next_wave_active = false
+	_wave_preview = ""
 	if _wave_hint:
 		_wave_hint.visible = false
 
 func _update_wave_hint() -> void:
 	if _wave_hint_label:
-		_wave_hint_label.text = "⚔️ 第 %d 波将在 %.1f 秒后来袭" % [_next_wave_index + 1, max(_next_wave_time, 0.0)]
+		var txt := "⚔️ 第 %d 波将在 %.1f 秒后来袭" % [_next_wave_index + 1, max(_next_wave_time, 0.0)]
+		if _wave_preview != "":
+			txt += "\n来袭: " + _wave_preview
+		_wave_hint_label.text = txt
+
+## 波次清空庆祝横幅：居中弹入「第 N 波 肃清！」短横幅 + 轻屏震。
+func _setup_wave_clear() -> void:
+	_wave_clear_label = Label.new()
+	_wave_clear_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_wave_clear_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_wave_clear_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_wave_clear_label.add_theme_font_size_override("font_size", 28)
+	_wave_clear_label.add_theme_color_override("font_color", ThemeConstants.GOLD)
+	_wave_clear_label.text = ""
+	_wave_clear_label.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_wave_clear_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_wave_clear_label)
+
+## 由 Level._try_celebrate 调用：弹一次「肃清」横幅。
+func show_wave_cleared(wave_num: int) -> void:
+	if not _wave_clear_label:
+		return
+	_wave_clear_label.text = "✅ 第 %d 波 肃清！" % wave_num
+	# 轻屏震（尊重 reduce_motion 由 screen_shake 内部跳过）
+	var cam := get_viewport().get_camera_2d()
+	if cam and cam.has_method("add_trauma"):
+		cam.add_trauma(0.2)
+	if GameManager.reduce_motion:
+		# 减弱动效：静态显示 1.1s 后隐藏，不做弹入弹出。
+		_wave_clear_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		if _wave_clear_tw and _wave_clear_tw.is_valid():
+			_wave_clear_tw.kill()
+		_wave_clear_tw = create_tween()
+		_wave_clear_tw.tween_property(_wave_clear_label, "modulate:a", 0.0, 0.4).set_delay(1.1)
+		return
+	if _wave_clear_tw and _wave_clear_tw.is_valid():
+		_wave_clear_tw.kill()
+	_wave_clear_label.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_wave_clear_label.scale = Vector2(0.8, 0.8)
+	_wave_clear_tw = create_tween()
+	_wave_clear_tw.tween_property(_wave_clear_label, "modulate:a", 1.0, 0.18).set_ease(Tween.EASE_OUT)
+	_wave_clear_tw.parallel().tween_property(_wave_clear_label, "scale", Vector2(1.1, 1.1), 0.18).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_wave_clear_tw.tween_property(_wave_clear_label, "modulate:a", 0.0, 0.4).set_delay(0.7).set_ease(Tween.EASE_IN)
 
 func _process(delta: float) -> void:
 	# 下一波倒计时（受 time_scale 影响；暂停时 _process 停止，自然冻结）

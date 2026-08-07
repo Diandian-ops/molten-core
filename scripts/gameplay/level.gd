@@ -23,6 +23,13 @@ var _level_ended: bool = false
 var _anim_time: float = 0.0
 var _boss_phase_spawners: Dictionary = {}
 
+# 战败归因：突破熔核的敌人数（每次 core 受击 = 一个漏怪）
+var _leaked: int = 0
+# 波次清空庆祝：跟踪当前波存活敌人数与生成是否完毕
+var _wave_alive: int = 0
+var _wave_spawn_done: bool = false
+var _celebrated_waves: Dictionary = {}
+
 func _ready() -> void:
 	# 关卡级时间缩放复位：保证每关从 1x 开始（与全新 HUD 的显示一致），
 	# 也避免上一关残留的 2x/3x 污染本关。SceneRouter 已复位 paused，此处只管 time_scale。
@@ -48,6 +55,7 @@ func _ready() -> void:
 		core.setup(level_data.core_max_energy)
 		core.add_to_group("core")
 		core.energy_depleted.connect(_on_core_depleted)
+		core.core_damaged.connect(_on_core_damaged)
 
 	_setup_build_slots()
 	_init_map_ground()
@@ -58,6 +66,7 @@ func _ready() -> void:
 		spawn_manager.all_waves_completed.connect(_on_all_waves_completed)
 		spawn_manager.wave_started.connect(_on_wave_started)
 		spawn_manager.between_wave_started.connect(_on_between_wave_started)
+		spawn_manager.wave_spawn_completed.connect(_on_wave_spawn_completed)
 		spawn_manager.start()
 
 func _process(delta: float) -> void:
@@ -156,6 +165,7 @@ func _on_branch_dialog_closed(_id: String) -> void:
 
 func _on_enemy_spawned(enemy: Enemy) -> void:
 	_alive_enemies += 1
+	_wave_alive += 1
 	enemy.died.connect(_on_enemy_died)
 	if enemy.is_boss() and enemy.data and not enemy.data.boss_phases.is_empty():
 		# 监听 boss 阶段
@@ -203,18 +213,62 @@ func _find_enemy_data_by_id(id: String) -> EnemyData:
 
 func _on_enemy_died(_enemy: Enemy) -> void:
 	_alive_enemies -= 1
+	_wave_alive = max(0, _wave_alive - 1)
+	_try_celebrate(_reached_wave - 1)
 	_check_victory()
 
 func _on_wave_started(wave_index: int, total_waves: int) -> void:
 	_reached_wave = wave_index + 1  # 1-based，与 HUD 显示一致
+	_wave_alive = 0
+	_wave_spawn_done = false
 	if hud and hud.has_method("update_wave_label"):
 		hud.update_wave_label(wave_index + 1, total_waves)
 	if hud and hud.has_method("clear_next_wave_countdown"):
 		hud.clear_next_wave_countdown()
 
+## 某一波敌人全部生成完毕（可能仍存活）。结合 _wave_alive 归零判定波次清空。
+func _on_wave_spawn_completed(wave_index: int) -> void:
+	_wave_spawn_done = true
+	_try_celebrate(wave_index)
+
 func _on_between_wave_started(next_index: int, delay: float) -> void:
 	if hud and hud.has_method("show_next_wave_countdown"):
-		hud.show_next_wave_countdown(next_index, delay)
+		var preview := _build_wave_preview(next_index)
+		hud.show_next_wave_countdown(next_index, delay, preview)
+
+## 波次清空庆祝：当本波已生成完毕且存活数归零时，弹一次「肃清」横幅。
+func _try_celebrate(wave_index: int) -> void:
+	if _level_ended:
+		return
+	if wave_index < 0 or _celebrated_waves.has(wave_index):
+		return
+	if not (_wave_spawn_done and _wave_alive <= 0):
+		return
+	_celebrated_waves[wave_index] = true
+	if hud and hud.has_method("show_wave_cleared"):
+		hud.show_wave_cleared(wave_index + 1)
+
+## 聚合下一波敌人构成，供 HUD 出兵预览显示（按 display_name 合并数量）。
+func _build_wave_preview(wave_index: int) -> String:
+	if level_data == null or wave_index < 0 or wave_index >= level_data.waves.size():
+		return ""
+	var wave: WaveData = level_data.waves[wave_index]
+	var counts := {}
+	for entry in wave.entries:
+		if entry.enemy_data != null:
+			var nm := entry.enemy_data.display_name
+			counts[nm] = counts.get(nm, 0) + entry.count
+	var parts := []
+	for nm in counts.keys():
+		parts.append("%s×%d" % [nm, counts[nm]])
+	return " · ".join(parts)
+
+## 战败归因：每次熔核受击 = 一个敌人突破防线（护盾免伤不会触发，不计入）。
+## 签名需匹配 Core.core_damaged(amount, current) 的两个参数。
+func _on_core_damaged(_amount: int, _current: int) -> void:
+	if _level_ended:
+		return
+	_leaked += 1
 
 func _on_all_waves_completed() -> void:
 	_all_waves_spawned = true
@@ -242,7 +296,7 @@ func _end_level(victory: bool) -> void:
 	if victory:
 		stars = level_data.calculate_stars(GameManager.core_energy)
 		GameManager.complete_level(level_data.level_id, stars, level_data.next_level_id)
-	SceneRouter.go_to_result(victory, stars, level_data, _reached_wave)
+	SceneRouter.go_to_result(victory, stars, level_data, _reached_wave, _leaked)
 
 func _exit_tree() -> void:
 	# 关卡卸载时复位全局时间缩放，避免残留 2x/3x 加速后续场景（结算/菜单）。
