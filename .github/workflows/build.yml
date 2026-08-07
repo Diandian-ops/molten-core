@@ -1,10 +1,8 @@
 name: Build & Release
 
-# 触发：推送到 main 会自动构建并发布（continuous 预发布）；打 v* tag 发正式版；也可手动触发。
+# 触发：已暂停自动构建（GitHub 账号因账单被锁，push 触发只会红叉）。
+# 仅保留手动触发；账号解锁后如需恢复自动 CI，把 push 段加回来即可。
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
