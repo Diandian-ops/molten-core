@@ -1,0 +1,9 @@
+# Godot 4.x — 文本资源统一 LF，避免 Windows 下 CRLF 与仓库 LF 冲突导致假性改动
+*.gd text eol=lf
+*.gdshader text eol=lf
+*.tres text eol=lf
+*.tscn text eol=lf
+*.import text eol=lf
+*.uid text eol=lf
+*.cfg text eol=lf
+*.md text eol=lf
