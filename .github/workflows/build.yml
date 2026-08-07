@@ -53,14 +53,20 @@ jobs:
           echo "templates ready at $TD"; ls "$TD" | head
 
       # ── Android 源模板（gradle 导出必需；CI 原缺失 → Android 导出失败）──
-      # Godot 4.7 发布资产命名为 Godot_v<ver>_android_source.perfetto.zip，
-      # 但 Godot 内部查找 android_source.zip（及 possibly .perfetto.zip），两份都放以覆盖。
-      - name: Download Android source template
+      # Godot 4.x 优先用项目内 android/ 目录（等同编辑器"Install Android Build Template"），
+      # 其次全局 templates 的 android_source.zip。两者都置以覆盖不同 Godot 版本行为。
+      - name: Download & install Android source template
         run: |
           curl -fL -o android_src.zip "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_android_source.perfetto.zip"
+          # 全局 templates（Godot 4.7 查找名 android_source.zip / .perfetto.zip）
           cp android_src.zip "$TD/android_source.zip"
           cp android_src.zip "$TD/android_source.perfetto.zip"
-          echo "android source template placed:"; ls -la "$TD" | grep -i android
+          # 项目内 android/ 目录（等同官方 Install Android Build Template）
+          mkdir -p android
+          unzip -o -q android_src.zip -d android_src_tmp
+          cp -r android_src_tmp/. android/
+          rm -rf android_src_tmp
+          echo "android source template: global + project/android/"; ls -la "$TD" | grep -i android; echo "--- project/android ---"; ls android | head
 
       # ── 冒烟测试：临时把 main_scene 指向测试场景，无头跑一遍，校验 SMOKE_TEST_OK ──
       - name: Run gameplay smoke test
@@ -97,7 +103,7 @@ jobs:
           mv "$SDK_ROOT/cmdline-tools/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
           yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" --licenses
           "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" \
-            "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+            "platform-tools" "platforms;android-34" "platforms;android-35" "build-tools;34.0.0" "build-tools;35.0.0"
           {
             echo "ANDROID_HOME=$SDK_ROOT"
             echo "ANDROID_SDK_ROOT=$SDK_ROOT"
@@ -148,7 +154,7 @@ jobs:
           python3 - <<'PY'
           import json, urllib.request, zipfile, re, os
           token = os.environ['GH_TOKEN']; repo = os.environ['REPO']; run_id = os.environ['RUN_ID']
-          H = {'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json'}
+          H = {'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'User-Agent': 'ci-diag'}
           def api(u):
               return json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H)))
           jobs = api('https://api.github.com/repos/%s/actions/runs/%s/jobs?per_page=20' % (repo, run_id))
