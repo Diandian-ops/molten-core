@@ -309,7 +309,7 @@ func _update_speed_button_text() -> void:
 func _setup_pause_ui() -> void:
 	if _top_bar:
 		_pause_button = Button.new()
-		_pause_button.custom_minimum_size = Vector2(48, 40)
+		_pause_button.custom_minimum_size = Vector2(48, 48)
 		_pause_button.text = "⏸️"
 		_pause_button.tooltip_text = "暂停 / 继续"
 		_pause_button.pressed.connect(_on_pause_pressed)
