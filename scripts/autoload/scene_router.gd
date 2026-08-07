@@ -32,6 +32,7 @@ func go_to_result(victory: bool, stars: int, level_data: LevelData, reached_wave
 		"reached_wave": reached_wave,
 		"leaked": leaked,
 	}
+	Telemetry.flush()
 	_change_scene_deferred(RESULT_SCREEN)
 
 ## 场景切换必须延迟到当前帧的节点增删操作完成后执行，

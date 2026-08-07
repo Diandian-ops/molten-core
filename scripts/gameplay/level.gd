@@ -56,6 +56,7 @@ func _ready() -> void:
 		core.add_to_group("core")
 		core.energy_depleted.connect(_on_core_depleted)
 		core.core_damaged.connect(_on_core_damaged)
+	Telemetry.reset(level_data.level_id)
 
 	_setup_build_slots()
 	_init_map_ground()
@@ -235,6 +236,7 @@ func _on_wave_started(wave_index: int, total_waves: int) -> void:
 ## 某一波敌人全部生成完毕（可能仍存活）。结合 _wave_alive 归零判定波次清空。
 func _on_wave_spawn_completed(wave_index: int) -> void:
 	_wave_spawn_done = true
+	Telemetry.log_wave(wave_index, _leaked, GameManager.currency)
 	_try_celebrate(wave_index)
 
 func _on_between_wave_started(next_index: int, delay: float) -> void:
@@ -275,6 +277,7 @@ func _on_core_damaged(_amount: int, _current: int) -> void:
 	if _level_ended:
 		return
 	_leaked += 1
+	Telemetry.log_leak(_amount, _current)
 
 func _on_all_waves_completed() -> void:
 	_all_waves_spawned = true
@@ -302,6 +305,7 @@ func _end_level(victory: bool) -> void:
 	if victory:
 		stars = level_data.calculate_stars(GameManager.core_energy)
 		GameManager.complete_level(level_data.level_id, stars, level_data.next_level_id)
+	Telemetry.log_outcome(victory, stars, _reached_wave)
 	SceneRouter.go_to_result(victory, stars, level_data, _reached_wave, _leaked)
 
 func _exit_tree() -> void:

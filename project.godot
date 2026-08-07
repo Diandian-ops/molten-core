@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 GameManager="*res://scripts/autoload/game_manager.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 SceneRouter="*res://scripts/autoload/scene_router.gd"
+Telemetry="*res://scripts/autoload/telemetry.gd"
 ThemeConstants="*res://scripts/ui/theme_constants.gd"
 HitStop="*res://scripts/effects/hit_stop.gd"
 

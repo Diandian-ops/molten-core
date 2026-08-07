@@ -57,6 +57,7 @@ var _wave_clear_tw: Tween
 var _range_preview: Node2D = null
 var _preview_slot: BuildSlot = null
 var _default_preview_tower: TowerData = null
+var _preview_hover_count: int = 0  # 建塔菜单打开期间悬停切换射程环的次数（遥测用）
 
 # 首关开场引导提示（仅 level_01 首次进入显示）
 var _intro_hint: Control = null
@@ -194,6 +195,7 @@ func _open_range_preview(slot: BuildSlot) -> void:
 	_clear_range_preview()
 	_preview_slot = slot
 	_default_preview_tower = null
+	_preview_hover_count = 0
 	for t in available_towers:
 		if t and GameManager.currency >= t.cost:
 			_default_preview_tower = t
@@ -207,6 +209,7 @@ func _open_range_preview(slot: BuildSlot) -> void:
 
 ## 桌面前置预览：悬停不同塔按钮时实时切换射程环。
 func _on_build_btn_hover(tower_data: TowerData) -> void:
+	_preview_hover_count += 1
 	if _range_preview and tower_data:
 		_range_preview.setup(tower_data.attack_range, tower_data.splash_radius)
 
@@ -352,6 +355,7 @@ func close_all_menus() -> void:
 
 func _on_tower_button_pressed(tower_data: TowerData) -> void:
 	if _current_slot and GameManager.currency >= tower_data.cost:
+		Telemetry.log_build(tower_data.id, _range_preview != null, _preview_hover_count)
 		_current_slot.build_tower(tower_data)
 	close_all_menus()
 
@@ -418,6 +422,7 @@ func _on_speed_button_pressed() -> void:
 	else:
 		_game_speed = 1.0
 	Engine.time_scale = _game_speed
+	Telemetry.log_speed_change(_game_speed)
 	_update_speed_button_text()
 
 func _update_speed_button_text() -> void:
@@ -477,6 +482,7 @@ func _setup_pause_ui() -> void:
 func _on_pause_pressed() -> void:
 	AudioManager.play_sfx("ui_click")
 	get_tree().paused = not get_tree().paused
+	Telemetry.log_pause(get_tree().paused)
 	_update_pause_text()
 
 func _update_pause_text() -> void:
