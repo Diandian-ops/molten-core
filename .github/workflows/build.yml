@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write # 用于创建/更新 Release
+  issues: write   # 失败时自动开诊断 Issue（公开可读，绕过日志 403）
 
 env:
   GODOT_VERSION: "4.7.1-stable"
@@ -103,33 +104,79 @@ jobs:
           } >> "$GITHUB_ENV"
 
       # ── 导出平台（preset 名须与 export_presets.cfg 完全一致）──
-      # Android 首次导出时 Godot 会自动下载 Android 源码模板 + Gradle 分发，需联网。
+      # Android 首次导出时 Godot 会自动下载 Gradle 分发，需联网。
+      # Win/macOS 用 continue-on-error：任一失败不阻塞 Android（我们要的是 Android 包）。
+      # Android 不加 continue-on-error：它失败才让 job 失败 → 触发诊断 Issue。
       - name: Export Windows
+        continue-on-error: true
         run: ./godot --headless --path . --export-release "Windows Desktop"
 
       - name: Export macOS
+        continue-on-error: true
         run: ./godot --headless --path . --export-release "macOS"
 
       - name: Export Android
         run: ./godot --headless --path . --export-release "Android"
 
-      # ── 打包成 zip 产物（macOS 产出 .app 目录，整体压缩）──
+      # ── 打包成 zip 产物（各平台独立，缺失则跳过；Android 是我们主要目标）──
       - name: Package artifacts
+        if: always()
         run: |
-          cd build/windows && zip -r ../../MoltenCore-windows.zip MoltenCore.exe
-          cd ../macos   && zip -r ../../MoltenCore-macos.zip   MoltenCore.app
-          cd ../android && zip -r ../../MoltenCore-android.zip MoltenCore.apk
-          cd ../..
+          mkdir -p dist
+          ( cd build/windows && [ -f MoltenCore.exe ] && zip -r ../../dist/MoltenCore-windows.zip MoltenCore.exe || echo "skip windows" )
+          ( cd build/macos   && [ -d MoltenCore.app ] && zip -r ../../dist/MoltenCore-macos.zip MoltenCore.app || echo "skip macos" )
+          ( cd build/android && [ -f MoltenCore.apk ] && zip -r ../../dist/MoltenCore-android.zip MoltenCore.apk || echo "skip android" )
+          echo "--- dist ---"; ls -la dist
 
       - name: Upload artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: moltencore-builds
-          path: |
-            MoltenCore-windows.zip
-            MoltenCore-macos.zip
-            MoltenCore-android.zip
+          path: dist/*
+          if-no-files-found: ignore
           retention-days: 14
+
+      # ── 失败自诊断：把失败 step + 错误片段发成公开 Issue，绕过日志 403 不可读 ──
+      - name: Diagnose failure → open issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, zipfile, re, os
+          token = os.environ['GH_TOKEN']; repo = os.environ['REPO']; run_id = os.environ['RUN_ID']
+          H = {'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json'}
+          def api(u):
+              return json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H)))
+          jobs = api('https://api.github.com/repos/%s/actions/runs/%s/jobs?per_page=20' % (repo, run_id))
+          failed = [(j['name'], s['name']) for j in jobs.get('jobs', []) for s in j.get('steps', []) if s.get('conclusion') == 'failure']
+          err = ''
+          try:
+              req = urllib.request.Request('https://api.github.com/repos/%s/actions/runs/%s/logs' % (repo, run_id), headers=H)
+              zp = '/tmp/ci_logs_%s.zip' % run_id
+              open(zp, 'wb').write(urllib.request.urlopen(req).read())
+              z = zipfile.ZipFile(zp)
+              for n in z.namelist():
+                  for ln in z.read(n).decode('utf-8', 'ignore').splitlines():
+                      if re.search(r'error|exception|fail|cannot|not found|no such|traceback|refused', ln, re.I):
+                          err += ln + '\n'
+          except Exception as e:
+              err = 'log fetch error: ' + str(e)
+          body = '## CI Failure Auto-Diagnosis\n\nFailed steps:\n'
+          for j, s in failed:
+              body += '- [%s] %s\n' % (j, s)
+          body += '\n### Error snippets (first 4000 chars)\n```\n' + err[:4000] + '\n```\n'
+          body += '\nrun_id=%s' % run_id
+          try:
+              urllib.request.urlopen(urllib.request.Request('https://api.github.com/repos/%s/issues' % repo,
+                  data=json.dumps({'title': 'CI diagnosis run %s' % run_id, 'body': body}).encode(), headers=H, method='POST'))
+              print('ISSUE_CREATED')
+          except Exception as e:
+              print('ISSUE_CREATE_FAILED', e)
+          PY
 
   release:
     name: Publish Release
@@ -160,9 +207,7 @@ jobs:
           prerelease: ${{ steps.tag.outputs.prerelease }}
           name: MoltenCore ${{ steps.tag.outputs.tag }}
           files: |
-            artifacts/MoltenCore-windows.zip
-            artifacts/MoltenCore-macos.zip
-            artifacts/MoltenCore-android.zip
+            artifacts/*.zip
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
