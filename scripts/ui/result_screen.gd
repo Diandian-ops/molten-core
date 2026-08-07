@@ -19,17 +19,24 @@ func _ready() -> void:
 	var stars: int = result.get("stars", 0)
 	_level_id = result.get("level_id", "")
 	_next_level_id = result.get("next_level_id", "")
+	var reached_wave: int = result.get("reached_wave", 0)
 
 	if title_label:
 		title_label.text = "熔核守住了！" if victory else "熔核已熄灭……"
-		title_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3, 1.0) if victory else Color(0.9, 0.35, 0.3, 1.0))
+		title_label.add_theme_color_override("font_color", ThemeConstants.GOLD if victory else ThemeConstants.DANGER)
+		title_label.add_theme_font_size_override("font_size", ThemeConstants.TITLE)
 	if stars_label:
 		stars_label.text = ("★".repeat(stars) + "☆".repeat(3 - stars)) if victory else ""
 	if next_button:
 		next_button.visible = victory and _next_level_id != ""
 	if hint_label:
-		hint_label.visible = victory
-		hint_label.text = "📖 通关解锁新剧情，主菜单「剧情日志」可查看"
+		if victory:
+			hint_label.visible = true
+			hint_label.text = "📖 通关解锁新剧情，主菜单「剧情日志」可查看"
+		else:
+			# 失败闭环：玩家需要知道「我撑到了第几波」，否则挫败感无锚点。
+			hint_label.visible = reached_wave > 0
+			hint_label.text = "坚持到第 %d 波 · 熔心仍在，再战！" % reached_wave
 
 	# BGM: 1.5s 后根据胜负播放
 	var timer := get_tree().create_timer(1.5)

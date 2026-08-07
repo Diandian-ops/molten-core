@@ -28,27 +28,29 @@ func _populate() -> void:
 
 		var card := PanelContainer.new()
 		card.custom_minimum_size = Vector2(340, 120)
+		# 统一卡片底色（普通态），hover/聚焦时切高亮态 —— 制造可点性反馈。
+		card.add_theme_stylebox_override("panel", ThemeConstants.card_normal_style())
 
 		var vbox := VBoxContainer.new()
 		vbox.add_theme_constant_override("separation", 8)
 
 		var title := Label.new()
 		title.text = ("🔒 " if not unlocked else "🗺️ ") + display_name
-		title.add_theme_font_size_override("font_size", 22)
+		title.add_theme_font_size_override("font_size", ThemeConstants.H2)
 
 		var star := Label.new()
 		if unlocked:
 			star.text = "★★★".substr(0, stars) + "☆☆☆".substr(0, 3 - stars)
-			star.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2, 1.0))
+			star.add_theme_color_override("font_color", ThemeConstants.GOLD)
 		else:
 			star.text = "（未解锁）"
-			star.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65, 1.0))
-		star.add_theme_font_size_override("font_size", 20)
+			star.add_theme_color_override("font_color", ThemeConstants.LOCKED_TEXT)
+		star.add_theme_font_size_override("font_size", ThemeConstants.STAR)
 
 		var hint := Label.new()
 		hint.text = _boss_hint(level_id)
-		hint.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85, 0.8))
-		hint.add_theme_font_size_override("font_size", 14)
+		hint.add_theme_color_override("font_color", ThemeConstants.TEXT_DIM_A)
+		hint.add_theme_font_size_override("font_size", ThemeConstants.SMALL)
 
 		vbox.add_child(title)
 		vbox.add_child(star)
@@ -57,10 +59,17 @@ func _populate() -> void:
 
 		if unlocked:
 			card.mouse_filter = Control.MOUSE_FILTER_STOP
+			card.focus_mode = Control.FOCUS_ALL
 			card.gui_input.connect(_on_card_clicked.bind(level_path))
+			card.mouse_entered.connect(_on_card_hover.bind(card, true))
+			card.mouse_exited.connect(_on_card_hover.bind(card, false))
+			card.focus_entered.connect(_on_card_focus.bind(card, true))
+			card.focus_exited.connect(_on_card_focus.bind(card, false))
+			card.set_meta("hover", false)
+			card.set_meta("focus", false)
 		else:
 			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			card.modulate = Color(0.5, 0.5, 0.6, 0.7)
+			card.modulate = Color(ThemeConstants.LOCKED.r, ThemeConstants.LOCKED.g, ThemeConstants.LOCKED.b, 0.7)
 
 		grid.add_child(card)
 
@@ -70,6 +79,19 @@ func _populate() -> void:
 		var tw := create_tween()
 		tw.tween_property(card, "modulate:a", target_a, 0.4).set_delay(0.15 + idx * 0.1).set_ease(Tween.EASE_OUT)
 		idx += 1
+
+## 卡片 hover / 聚焦：用 meta 记录双状态，任一为真即高亮，避免 mouse 与 focus 互相覆盖。
+func _on_card_hover(card: PanelContainer, on: bool) -> void:
+	card.set_meta("hover", on)
+	_apply_card_state(card)
+
+func _on_card_focus(card: PanelContainer, on: bool) -> void:
+	card.set_meta("focus", on)
+	_apply_card_state(card)
+
+func _apply_card_state(card: PanelContainer) -> void:
+	var hi: bool = card.get_meta("hover", false) or card.get_meta("focus", false)
+	card.add_theme_stylebox_override("panel", ThemeConstants.card_hover_style() if hi else ThemeConstants.card_normal_style())
 
 func _on_card_clicked(event: InputEvent, level_path: String) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

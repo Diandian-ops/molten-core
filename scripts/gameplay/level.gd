@@ -15,7 +15,8 @@ const BossPhase = preload("res://scripts/data/boss_phase.gd")
 @onready var path_overlay: Node2D = $PathOverlay
 @onready var effects_node: Node2D = $Effects
 
-var _current_wave_index: int = -1
+var _current_wave_index: int = -1  # 历史遗留死变量（从未赋值），保留以最小改动；到达波次用 _reached_wave
+var _reached_wave: int = 0  # 玩家实际开始的最后一波（1-based），供失败结算展示
 var _alive_enemies: int = 0
 var _all_waves_spawned: bool = false
 var _level_ended: bool = false
@@ -50,9 +51,6 @@ func _ready() -> void:
 
 	_setup_build_slots()
 	_init_map_ground()
-
-	if hud and hud.has_method("setup"):
-		hud.setup(level_data)
 
 	if spawn_manager and spawn_manager.has_method("setup"):
 		spawn_manager.setup(level_data, core.global_position)
@@ -208,6 +206,7 @@ func _on_enemy_died(_enemy: Enemy) -> void:
 	_check_victory()
 
 func _on_wave_started(wave_index: int, total_waves: int) -> void:
+	_reached_wave = wave_index + 1  # 1-based，与 HUD 显示一致
 	if hud and hud.has_method("update_wave_label"):
 		hud.update_wave_label(wave_index + 1, total_waves)
 	if hud and hud.has_method("clear_next_wave_countdown"):
@@ -243,7 +242,7 @@ func _end_level(victory: bool) -> void:
 	if victory:
 		stars = level_data.calculate_stars(GameManager.core_energy)
 		GameManager.complete_level(level_data.level_id, stars, level_data.next_level_id)
-	SceneRouter.go_to_result(victory, stars, level_data)
+	SceneRouter.go_to_result(victory, stars, level_data, _reached_wave)
 
 func _exit_tree() -> void:
 	# 关卡卸载时复位全局时间缩放，避免残留 2x/3x 加速后续场景（结算/菜单）。

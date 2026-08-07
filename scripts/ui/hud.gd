@@ -108,9 +108,6 @@ func _on_menu_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		get_viewport().set_input_as_handled()
 
-func setup(_level_data: LevelData) -> void:
-	pass
-
 func _populate_build_menu() -> void:
 	if not build_menu_buttons:
 		return
@@ -185,7 +182,7 @@ func _update_build_buttons_availability() -> void:
 				btn.modulate = Color(1.0, 1.0, 1.0, 1.0)
 			else:
 				# 能量不足：灰暗变暗、半透明禁用感
-				btn.modulate = Color(0.4, 0.4, 0.4, 0.5)
+				btn.modulate = ThemeConstants.BTN_DISABLED
 			idx += 1
 
 func _show_inspector_menu(slot: BuildSlot) -> void:

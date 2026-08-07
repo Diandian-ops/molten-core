@@ -142,7 +142,12 @@ func _validate_resources() -> void:
 		"res://resources/enemies/enemy_ember_wisp.tres",
 		"res://resources/towers/tower_siege.tres",
 		"res://scenes/level_select.tscn",
+		"res://scenes/main_menu.tscn",
+		"res://scenes/result_screen.tscn",
+		"res://scenes/ui/story_log.tscn",
 		"res://resources/enemies/boss_sovereign.tres",
+		"res://scripts/ui/theme_constants.gd",
+		"res://scripts/ui/settings_panel.gd",
 	]
 	for p in extra:
 		if load(p) == null:

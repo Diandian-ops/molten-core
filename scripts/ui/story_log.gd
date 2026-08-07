@@ -42,6 +42,12 @@ func _populate() -> void:
 		var unlocked: bool = entry.unlock_level_id == "" or GameManager.is_level_unlocked(entry.unlock_level_id)
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(240, 56)
+		# 统一列表按钮视觉：普通态深底，hover/聚焦金色边框（与关卡卡一致的可点性反馈）。
+		btn.add_theme_stylebox_override("normal", ThemeConstants.button_normal_style())
+		btn.add_theme_stylebox_override("hover", ThemeConstants.button_hover_style())
+		btn.add_theme_stylebox_override("focus", ThemeConstants.button_hover_style())
+		btn.add_theme_stylebox_override("pressed", ThemeConstants.button_hover_style())
+		btn.add_theme_stylebox_override("disabled", ThemeConstants.button_disabled_style())
 		if unlocked:
 			btn.text = "%s\n%s" % [entry.chapter, entry.title]
 		else:

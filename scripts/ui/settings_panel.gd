@@ -35,6 +35,7 @@ func _build_ui() -> void:
 	var title := Label.new()
 	title.text = "⚙️ 设置"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", ThemeConstants.TITLE)
 	vbox.add_child(title)
 
 	for bus in BUSES:
