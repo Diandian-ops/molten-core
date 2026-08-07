@@ -122,7 +122,8 @@ jobs:
         run: ./godot --headless --path . --export-release "macOS"
 
       - name: Export Android
-        run: ./godot --headless --path . --export-release "Android"
+        # 输出重定向到文件，便于失败后诊断 step 提取错误（不依赖日志 403）
+        run: ./godot --headless --path . --export-release "Android" > android_build.log 2>&1; ec=$?; cat android_build.log; exit $ec
 
       # ── 打包成 zip 产物（各平台独立，缺失则跳过；Android 是我们主要目标）──
       - name: Package artifacts
@@ -143,46 +144,26 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      # ── 失败自诊断：把失败 step + 错误片段发成公开 Issue，绕过日志 403 不可读 ──
+      # ── 失败自诊断：把 Android 导出错误发成公开 Issue，绕过日志 403 不可读 ──
+      # 用 gh CLI（ubuntu runner 预装，自动处理 auth/headers，避免手动 POST 缺 Content-Type 被拒）；
+      # 直接读 android_build.log 的错误行，不依赖解析 logs zip。
       - name: Diagnose failure → open issue
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.run_id }}
-          REPO: ${{ github.repository }}
         run: |
-          python3 - <<'PY'
-          import json, urllib.request, zipfile, re, os
-          token = os.environ['GH_TOKEN']; repo = os.environ['REPO']; run_id = os.environ['RUN_ID']
-          H = {'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'User-Agent': 'ci-diag'}
-          def api(u):
-              return json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H)))
-          jobs = api('https://api.github.com/repos/%s/actions/runs/%s/jobs?per_page=20' % (repo, run_id))
-          failed = [(j['name'], s['name']) for j in jobs.get('jobs', []) for s in j.get('steps', []) if s.get('conclusion') == 'failure']
-          err = ''
-          try:
-              req = urllib.request.Request('https://api.github.com/repos/%s/actions/runs/%s/logs' % (repo, run_id), headers=H)
-              zp = '/tmp/ci_logs_%s.zip' % run_id
-              open(zp, 'wb').write(urllib.request.urlopen(req).read())
-              z = zipfile.ZipFile(zp)
-              for n in z.namelist():
-                  for ln in z.read(n).decode('utf-8', 'ignore').splitlines():
-                      if re.search(r'error|exception|fail|cannot|not found|no such|traceback|refused', ln, re.I):
-                          err += ln + '\n'
-          except Exception as e:
-              err = 'log fetch error: ' + str(e)
-          body = '## CI Failure Auto-Diagnosis\n\nFailed steps:\n'
-          for j, s in failed:
-              body += '- [%s] %s\n' % (j, s)
-          body += '\n### Error snippets (first 4000 chars)\n```\n' + err[:4000] + '\n```\n'
-          body += '\nrun_id=%s' % run_id
-          try:
-              urllib.request.urlopen(urllib.request.Request('https://api.github.com/repos/%s/issues' % repo,
-                  data=json.dumps({'title': 'CI diagnosis run %s' % run_id, 'body': body}).encode(), headers=H, method='POST'))
-              print('ISSUE_CREATED')
-          except Exception as e:
-              print('ISSUE_CREATE_FAILED', e)
-          PY
+          err=""
+          if [ -f android_build.log ]; then
+            err=$(grep -iE "error|exception|fail|cannot|not found|no such|traceback|refused|warning: " android_build.log | head -50)
+          fi
+          {
+            echo "## CI Failure Auto-Diagnosis (run ${{ github.run_id }})"
+            echo ""
+            echo "### android_build.log (error/warn lines)"
+            echo '```'
+            echo "${err:-<no error lines captured>}"
+            echo '```'
+          } | gh issue create --title "CI diagnosis run ${{ github.run_id }}" --body-file - || echo "GH_ISSUE_CREATE_FAILED"
 
   release:
     name: Publish Release
