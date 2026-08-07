@@ -69,6 +69,12 @@ func _ready() -> void:
 		spawn_manager.wave_spawn_completed.connect(_on_wave_spawn_completed)
 		spawn_manager.start()
 
+	# 首关开场引导：仅 level_01 且玩家尚未获得过星级（首次进入）时提示。
+	# 判定用 level_stars.get("level_01", 0) == 0 —— 通关写档后该值 > 0，提示不再出现。
+	if hud and hud.has_method("show_first_time_hint"):
+		if level_data.level_id == "level_01" and GameManager.level_stars.get("level_01", 0) == 0:
+			hud.show_first_time_hint("点击发光格子建塔，守住中央熔核，别让敌人突破！")
+
 func _process(delta: float) -> void:
 	_anim_time += delta
 	if path_overlay:

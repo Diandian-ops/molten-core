@@ -4,6 +4,7 @@ class_name HUD
 
 const ParticleBurst = preload("res://scripts/effects/particle_burst.gd")
 const FlashBurst = preload("res://scripts/effects/flash_burst.gd")
+const RangePreview = preload("res://scripts/ui/range_preview.gd")
 
 @onready var currency_label: Label = $TopRightPanel/Margin/HBoxContainer/CurrencyLabel
 @onready var wave_label: Label = $TopRightPanel/Margin/HBoxContainer/WaveLabel
@@ -51,6 +52,15 @@ var _wave_preview: String = ""  # 下一波敌人构成（出兵预览）
 # 波次清空庆祝横幅（运行时动态构建）
 var _wave_clear_label: Label
 var _wave_clear_tw: Tween
+
+# 建塔射程预览（新手友好：建塔前在槽位上显示覆盖范围）
+var _range_preview: Node2D = null
+var _preview_slot: BuildSlot = null
+var _default_preview_tower: TowerData = null
+
+# 首关开场引导提示（仅 level_01 首次进入显示）
+var _intro_hint: Control = null
+var _intro_hint_tw: Tween
 
 # 安全区（刘海/手势条）内缩量，桌面端恒为 0，无副作用
 var _safe_left: float = 0.0
@@ -104,6 +114,7 @@ func _ready() -> void:
 	_setup_pause_ui()
 	_setup_wave_hint()
 	_setup_wave_clear()
+	_setup_intro_hint()
 	_populate_build_menu()
 
 	# 移动端安全区适配：连接视口尺寸变化并立即应用一次
@@ -143,6 +154,9 @@ func _populate_build_menu() -> void:
 		btn.expand_icon = true
 		btn.custom_minimum_size = Vector2(230, 68)
 		btn.pressed.connect(_on_tower_button_pressed.bind(tower_data))
+		# 桌面前置预览：悬停切换射程环（移动端无 hover，建塔菜单打开时已显示默认塔射程）
+		btn.mouse_entered.connect(_on_build_btn_hover.bind(tower_data))
+		btn.mouse_exited.connect(_on_build_btn_exit)
 		build_menu_buttons.add_child(btn)
 
 func open_slot_menu(slot: BuildSlot) -> void:
@@ -164,13 +178,110 @@ func _show_build_menu(slot: BuildSlot) -> void:
 	pos.x = clamp(pos.x, 20.0, viewport_size.x - min_s.x - 20.0)
 	pos.y = clamp(pos.y, 60.0, viewport_size.y - min_s.y - 20.0)
 	build_menu.global_position = pos
-	
+
+	# 新手友好：建塔菜单打开即显示默认塔的射程/溅射预览（移动端无 hover 也能看到覆盖）
+	_open_range_preview(slot)
+
 	# 更新标题提示当前持有的晶币/建塔能量
 	var title_lbl := build_menu.get_node_or_null("Margin/Layout/TitleLabel") as Label
 	if title_lbl:
 		title_lbl.text = "🛠️ 构造防御塔 (持有 💎 %d)" % GameManager.currency
 
 	_update_build_buttons_availability()
+
+## 在槽位上挂射程预览（ghost 环），默认显示第一个可建塔的射程。
+func _open_range_preview(slot: BuildSlot) -> void:
+	_clear_range_preview()
+	_preview_slot = slot
+	_default_preview_tower = null
+	for t in available_towers:
+		if t and GameManager.currency >= t.cost:
+			_default_preview_tower = t
+			break
+	if _default_preview_tower == null and available_towers.size() > 0:
+		_default_preview_tower = available_towers[0]
+	_range_preview = RangePreview.new()
+	slot.add_child(_range_preview)
+	if _default_preview_tower:
+		_range_preview.setup(_default_preview_tower.attack_range, _default_preview_tower.splash_radius)
+
+## 桌面前置预览：悬停不同塔按钮时实时切换射程环。
+func _on_build_btn_hover(tower_data: TowerData) -> void:
+	if _range_preview and tower_data:
+		_range_preview.setup(tower_data.attack_range, tower_data.splash_radius)
+
+func _on_build_btn_exit() -> void:
+	if _range_preview and _default_preview_tower:
+		_range_preview.setup(_default_preview_tower.attack_range, _default_preview_tower.splash_radius)
+
+func _clear_range_preview() -> void:
+	if _range_preview and is_instance_valid(_range_preview):
+		_range_preview.queue_free()
+	_range_preview = null
+	_preview_slot = null
+	_default_preview_tower = null
+
+## 首关开场引导提示：构建可关闭横幅（默认隐藏）。仅 level_01 首次进入时由 Level 调 show_first_time_hint 显示。
+func _setup_intro_hint() -> void:
+	_intro_hint = Control.new()
+	_intro_hint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_intro_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_intro_hint.visible = false
+
+	var panel := PanelContainer.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	panel.offset_top = 64.0 + _safe_top
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 不拦截下方建塔点击；仅内部关闭按钮可交互
+	_intro_hint.add_child(panel)
+
+	var hbox := HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	panel.add_child(hbox)
+
+	var lbl := Label.new()
+	lbl.name = "HintLabel"
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.custom_minimum_size = Vector2(400, 0)
+	hbox.add_child(lbl)
+
+	var close := Button.new()
+	close.text = "✕"
+	close.tooltip_text = "关闭提示"
+	close.pressed.connect(_on_intro_hint_closed)
+	hbox.add_child(close)
+
+	add_child(_intro_hint)
+
+## 由 Level 在 level_01 首次进入时调用。显示开场引导横幅，可手动关闭或 9s 后自动隐藏。
+func show_first_time_hint(text: String) -> void:
+	if not _intro_hint:
+		return
+	var lbl := _intro_hint.get_node_or_null("HintLabel") as Label
+	if lbl:
+		lbl.text = text
+	_intro_hint.visible = true
+	if _intro_hint_tw and _intro_hint_tw.is_valid():
+		_intro_hint_tw.kill()
+	if GameManager.reduce_motion:
+		_intro_hint.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		_intro_hint_tw = create_tween()
+		_intro_hint_tw.tween_property(_intro_hint, "modulate:a", 0.0, 0.5).set_delay(9.0)
+		_intro_hint_tw.tween_callback(func(): if is_instance_valid(_intro_hint): _intro_hint.visible = false)
+	else:
+		_intro_hint.modulate = Color(1.0, 1.0, 1.0, 0.0)
+		_intro_hint_tw = create_tween()
+		_intro_hint_tw.tween_property(_intro_hint, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT)
+		_intro_hint_tw.tween_property(_intro_hint, "modulate:a", 0.0, 0.5).set_delay(9.0).set_ease(Tween.EASE_IN)
+		_intro_hint_tw.tween_callback(func(): if is_instance_valid(_intro_hint): _intro_hint.visible = false)
+
+func _on_intro_hint_closed() -> void:
+	AudioManager.play_sfx("ui_click")
+	if _intro_hint_tw and _intro_hint_tw.is_valid():
+		_intro_hint_tw.kill()
+	if _intro_hint:
+		_intro_hint.visible = false
 
 func _update_build_buttons_availability() -> void:
 	if not build_menu_buttons:
@@ -233,6 +344,7 @@ func close_all_menus() -> void:
 	if _current_slot and is_instance_valid(_current_slot.current_tower):
 		_current_slot.current_tower.set_range_visible(false)
 	_current_slot = null
+	_clear_range_preview()
 	if build_menu:
 		build_menu.visible = false
 	if inspector_menu:

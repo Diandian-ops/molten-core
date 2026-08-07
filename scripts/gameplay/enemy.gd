@@ -218,6 +218,9 @@ func _reach_core() -> void:
 	var core := get_tree().get_first_node_in_group("core")
 	if core and core.has_method("take_damage"):
 		core.take_damage(data.damage_to_core)
+	# 新手友好：漏怪也发半额晶币，避免新手漏两三个就被经济钉死在完美通关上限（385）。
+	# [PLACEHOLDER · 漏怪安慰比例 0.5，待 Phase 1 按实测漏怪率与终局曲线校准]
+	GameManager.add_currency(int(data.currency_reward * 0.5))
 	die_silently()
 
 func _check_boss_phase() -> void:
