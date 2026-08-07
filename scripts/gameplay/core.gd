@@ -75,7 +75,7 @@ func take_damage(amount: int) -> void:
 		FloatingText.spawn(get_tree().current_scene, global_position + Vector2(0, -42), "-%d" % amount, Color(1.0, 0.35, 0.35), 52.0, 0.8)
 		var cam := get_viewport().get_camera_2d()
 		if cam and cam.has_method("add_trauma"):
-			cam.add_trauma(0.35)
+			cam.add_trauma(0.5)
 
 	if _hp <= 0:
 		_destroy_core()

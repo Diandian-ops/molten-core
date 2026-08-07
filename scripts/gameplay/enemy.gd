@@ -142,6 +142,7 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 			var cam := get_viewport().get_camera_2d()
 			if cam and cam.has_method("add_trauma"):
 				cam.add_trauma(0.2)
+			HitStop.trigger(0.03)  # 暴击顿帧：重击的微小冻结，强化命中重量感
 			FloatingText.spawn(get_tree().current_scene, global_position + Vector2(0,-20), str(int(mitigated)), Color(1.0,0.9,0.2), 55.0, 0.7)
 		else:
 			FloatingText.spawn(get_tree().current_scene, global_position + Vector2(0,-20), str(int(mitigated)), Color.WHITE, 45.0, 0.6)
@@ -171,6 +172,7 @@ func _die_and_reward() -> void:
 	if _dead:
 		return
 	_dead = true
+	HitStop.trigger(0.05)  # 击杀顿帧：冻结瞬间的"顿"感，强化摧毁爽快
 	GameManager.add_currency(data.currency_reward)
 	AudioManager.play_sfx("enemy_kill", 0.0, 0.85 + randf() * 0.3)
 	# Boss 死亡额外叠一层爆炸轰鸣；普通小怪不播，避免杀怪音效过载。
@@ -179,10 +181,11 @@ func _die_and_reward() -> void:
 	# 飘钱
 	if get_tree().current_scene:
 		FloatingText.spawn(get_tree().current_scene, global_position + Vector2(0,-10), "+%d" % data.currency_reward, Color(1.0, 0.85, 0.2), 40.0, 0.8)
-		# 死球粒子 + 爆闪环
+		# 死球粒子 + 爆闪环（按敌人 scale 缩放：越大炸得越爽）
 		var col := Color(1.0, 0.3, 0.1) if not is_boss() else Color(1.0, 0.6, 0.0)
-		ParticleBurst.spawn(get_tree().current_scene, global_position, col, 6 if not is_boss() else 20, 120.0, 0.5, 4.0)
-		FlashBurst.spawn(get_tree().current_scene, global_position, col, 40.0 if not is_boss() else 90.0, 0.35, true)
+		var s := data.scale
+		ParticleBurst.spawn(get_tree().current_scene, global_position, col, int(10 * s) if not is_boss() else int(24 * s), 130.0 * s, 0.5, 4.0 * s)
+		FlashBurst.spawn(get_tree().current_scene, global_position, col, (40.0 if not is_boss() else 90.0) * s, 0.35, true)
 	died.emit(self)
 	queue_free()
 
